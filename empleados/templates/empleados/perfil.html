@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - Sistema RRHH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 1.8rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .welcome-text {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .main-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 0.5rem;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .profile-item {
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .profile-item label {
+            display: block;
+            color: #666;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-item .value {
+            color: #333;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .messages {
+            margin-bottom: 1.5rem;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .message.info {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+
+        .message.error {
+            background-color: #ffebee;
+            color: #d32f2f;
+            border: 1px solid #ffcdd2;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .admin-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .admin-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+        
+        /* Estilos para la sección de foto de perfil */
+        .photo-section {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .current-photo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .profile-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #667eea;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .no-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 4px solid #dee2e6;
+        }
+        
+        .no-photo .icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .no-photo p {
+            color: #6c757d;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+        
+        .photo-form h3 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        
+        .upload-form .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .upload-form label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .upload-form input[type="file"] {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            background: white;
+            transition: border-color 0.3s ease;
+        }
+        
+        .upload-form input[type="file"]:hover {
+            border-color: #667eea;
+        }
+        
+        .upload-form input[type="text"],
+        .upload-form input[type="email"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-form input[type="text"]:focus,
+        .upload-form input[type="email"]:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+        
+        .info-message {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .info-message p {
+            margin-bottom: 0.5rem;
+            color: #1565c0;
+        }
+        
+        .info-message p:last-child {
+            margin-bottom: 0;
+            color: #1976d2;
+            font-size: 0.9rem;
+        }
+        
+        .help-text {
+            color: #6c757d;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+        
+        .error-messages {
+            margin-top: 0.5rem;
+        }
+        
+        .error {
+            color: #dc3545;
+            font-size: 0.8rem;
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .photo-section {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+        <div class="header">
+            <h1>🏢 Sistema de RRHH</h1>
+            <div class="user-info">
+                <span class="welcome-text">Bienvenido, {{ user.username }}</span>
+                <a href="{% url 'logout_empleado' %}" class="btn btn-danger">Cerrar Sesión</a>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <h2>👤 Mi Perfil de Empleado</h2>
+            
+            {% if empleado %}
+                <!-- Sección de Foto de Perfil -->
+                <div class="photo-section">
+                    <div class="current-photo">
+                        {% if empleado.foto_perfil %}
+                            <img src="{{ empleado.foto_perfil.url }}" alt="Foto de {{ empleado.nombre }}" class="profile-photo">
+                        {% else %}
+                            <div class="no-photo">
+                                <i class="icon">👤</i>
+                                <p>Sin foto</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if puede_editar %}
+                    <div class="photo-form">
+                        <h3>✏️ Editar Mi Perfil</h3>
+                        <form method="post" enctype="multipart/form-data" class="upload-form">
+                            {% csrf_token %}
+                            
+                            <div class="form-group">
+                                {{ form.nombre.label_tag }}
+                                {{ form.nombre }}
+                                {% if form.nombre.errors %}
+                                    <div class="error-messages">
+                                        {% for error in form.nombre.errors %}
+                                            <span class="error">{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                {{ form.apellido.label_tag }}
+                                {{ form.apellido }}
+                                {% if form.apellido.errors %}
+                                    <div class="error-messages">
+                                        {% for error in form.apellido.errors %}
+                                            <span class="error">{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                {{ form.email.label_tag }}
+                                {{ form.email }}
+                                {% if form.email.help_text %}
+                                    <small class="help-text">{{ form.email.help_text }}</small>
+                                {% endif %}
+                                {% if form.email.errors %}
+                                    <div class="error-messages">
+                                        {% for error in form.email.errors %}
+                                            <span class="error">{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                {{ form.foto_perfil.label_tag }}
+                                {{ form.foto_perfil }}
+                                {% if form.foto_perfil.help_text %}
+                                    <small class="help-text">{{ form.foto_perfil.help_text }}</small>
+                                {% endif %}
+                                {% if form.foto_perfil.errors %}
+                                    <div class="error-messages">
+                                        {% for error in form.foto_perfil.errors %}
+                                            <span class="error">{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <div class="photo-form">
+                        <h3>ℹ️ Información de Perfil</h3>
+                        <div class="info-message">
+                            <p><strong>📋 Solo el personal de RRHH puede editar perfiles</strong></p>
+                            <p>Si necesitas actualizar tu información, contacta al departamento de Recursos Humanos.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="profile-grid">
+                    <div class="profile-item">
+                        <label>Nombre Completo</label>
+                        <div class="value">{{ empleado.nombre }} {{ empleado.apellido }}</div>
+                    </div>
+                    
+                    <div class="profile-item">
+                        <label>Puesto</label>
+                        <div class="value">{{ empleado.puesto }}</div>
+                    </div>
+                    
+                    <div class="profile-item">
+                        <label>Gerencia</label>
+                        <div class="value">{{ empleado.get_gerencia_display|default:"No asignada" }}</div>
+                    </div>
+                    
+                    <div class="profile-item">
+                        <label>Jerarquía</label>
+                        <div class="value">{{ empleado.get_jerarquia_display }}</div>
+                    </div>
+                    
+                    <div class="profile-item">
+                        <label>Departamento</label>
+                        <div class="value">
+                            {% if empleado.es_rrhh %}
+                                <span style="color: #2196f3; font-weight: bold;">👥 Recursos Humanos</span>
+                            {% else %}
+                                {{ empleado.get_area_display|default:"No asignado" }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="profile-item">
+                        <label>Email</label>
+                        <div class="value">{{ empleado.email }}</div>
+                    </div>
+                    
+                    <div class="profile-item">
+                        <label>Fecha de Contratación</label>
+                        <div class="value">{{ empleado.fecha_contratacion|date:"d/m/Y" }}</div>
+                    </div>
+                </div>
+                
+                <div class="actions">
+                    <a href="{% url 'inicio_empleado' %}" class="btn btn-secondary">🏠 Regresar al Inicio</a>
+                    <a href="/admin/empleados/empleado/{{ empleado.id }}/change/" class="btn btn-primary">Editar Perfil</a>
+                    <a href="/admin/" class="btn btn-primary">Panel de Administración</a>
+                </div>
+                
+            {% elif mensaje %}
+                <div class="message info">
+                    <p>{{ mensaje }}</p>
+                </div>
+                
+                <div class="actions">
+                    <a href="{% url 'inicio_empleado' %}" class="btn btn-secondary">🏠 Regresar al Inicio</a>
+                    <a href="/admin/empleados/empleado/add/" class="btn btn-primary">Crear Perfil de Empleado</a>
+                    <a href="/admin/" class="btn btn-primary">Panel de Administración</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="footer">
+            <p>¿Necesitas ayuda? <a href="/admin/" class="admin-link">Contacta al administrador</a></p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Procesar Solicitud de Nuevo Colaborador</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+</head>
+<body>
+<div class="container mt-4">
+  <h2>Procesar Solicitud de Nuevo Colaborador</h2>
+  <div class="card p-3 mb-3">
+    <p><strong>Área:</strong> {{ solicitud.area_solicitante }}</p>
+    <p><strong>Responsable:</strong> {{ solicitud.persona_responsable }}</p>
+    <p><strong>Grupo:</strong> {{ solicitud.get_grupo_ocupacional_display }}</p>
+    <p><strong>Puesto:</strong> {{ solicitud.puesto_a_solicitud }}</p>
+    <p><strong>Denominación:</strong> {{ solicitud.get_denominacion_puesto_display }}</p>
+    <p><strong>Inicio:</strong> {{ solicitud.fecha_inicio_labores }}</p>
+    <p><strong>Motivo:</strong> {{ solicitud.motivo_contratacion }}</p>
+    <p><strong>Modalidad:</strong> {{ solicitud.modalidad_contratacion }}</p>
+    <p><strong>Tiempo (meses):</strong> {{ solicitud.tiempo_meses }}</p>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Comentario RRHH</label>
+      <textarea class="form-control" name="comentario" rows="3"></textarea>
+    </div>
+    <button class="btn btn-success" name="accion" value="aprobado">Aprobar</button>
+    <button class="btn btn-danger" name="accion" value="rechazado">Rechazar</button>
+    <button class="btn btn-warning" name="accion" value="observado">Observar</button>
+  </form>
+</div>
+</body>
+</html>
+

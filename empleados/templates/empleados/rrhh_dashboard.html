@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard RRHH - Sistema RRHH</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .welcome-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .welcome-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.5rem;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .solicitud-item {
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .solicitud-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .solicitud-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .empleado-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .empleado-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .empleado-details h4 {
+            color: #2d3748;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .empleado-position {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .estado-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .estado-pendiente {
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            color: white;
+        }
+
+        .solicitud-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .detail-item {
+            text-align: center;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-value {
+            font-size: 1rem;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .tipo-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tipo-regulares {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .tipo-adelantadas {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            color: white;
+        }
+
+        .tipo-fraccionadas {
+            background: linear-gradient(135deg, #667eea, #5a67d8);
+            color: white;
+        }
+
+        .solicitud-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+
+        .btn-success { background: linear-gradient(135deg, #28a745, #20c997); color: white; }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4); }
+
+        .btn-danger { background: linear-gradient(135deg, #dc3545, #c82333); color: white; }
+        .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4); }
+
+        .area-stats { margin-bottom: 2rem; }
+
+        .area-item { background: linear-gradient(135deg, #f7fafc, #edf2f7); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; border: 1px solid #e2e8f0; }
+        .area-name { font-weight: 600; color: #2d3748; margin-bottom: 0.5rem; }
+        .area-numbers { display: flex; gap: 1rem; font-size: 0.9rem; }
+        .area-number { display: flex; align-items: center; gap: 0.25rem; }
+        .area-total { color: #667eea; }
+        .area-pendientes { color: #ffc107; }
+        .area-aprobadas { color: #28a745; }
+        .area-rechazadas { color: #dc3545; }
+
+        .empty-state { text-align: center; padding: 3rem; color: #718096; }
+        .empty-state i { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
+        .empty-state h3 { font-size: 1.5rem; margin-bottom: 0.5rem; color: #4a5568; }
+
+        .quick-actions { margin-top: 0; margin-bottom: 2rem; }
+        .action-btn { display: block; width: 100%; padding: 1rem; margin-bottom: 1rem; background: linear-gradient(135deg, #667eea, #764ba2); color: white; text-decoration: none; border-radius: 12px; text-align: center; font-weight: 600; transition: all 0.3s ease; }
+        .action-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(102, 126, 234, 0.3); }
+
+        .hist-links { display:flex; gap:.5rem; flex-wrap:wrap; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-title">
+                <i class="fas fa-users-cog"></i>
+                Dashboard de Recursos Humanos
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <span>{{ empleado.nombre }} {{ empleado.apellido }}</span>
+                <a href="{% url 'logout_empleado' %}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="welcome-section">
+            <h1 class="welcome-title">👥 Dashboard RRHH</h1>
+            <p class="welcome-subtitle">Gestiona todas las solicitudes de vacaciones y nuevos colaboradores</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <div class="stat-number">{{ total_solicitudes }}</div>
+                <div class="stat-label">Total de Solicitudes</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-id-badge"></i>
+                </div>
+                <div class="stat-number">{{ total_solicitudes_nuevo_colaborador }}</div>
+                <div class="stat-label">Solicitudes Nuevo Colaborador</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-number">{{ solicitudes_pendientes_count }}</div>
+                <div class="stat-label">Pendientes de Revisión</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="stat-number">{{ solicitudes_aprobadas_count }}</div>
+                <div class="stat-label">Aprobadas</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-times"></i>
+                </div>
+                <div class="stat-number">{{ solicitudes_rechazadas_count }}</div>
+                <div class="stat-label">Rechazadas</div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="main-content">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+                    <h2 class="section-title">
+                        <i class="fas fa-clock"></i>
+                        Solicitudes Pendientes de Revisión
+                    </h2>
+                </div>
+
+                {% if solicitudes_pendientes %}
+                    {% for solicitud in solicitudes_pendientes %}
+                    <div class="solicitud-item">
+                        <div class="solicitud-header">
+                            <div class="empleado-info">
+                                <div class="empleado-avatar">
+                                    {{ solicitud.empleado.nombre|first }}{{ solicitud.empleado.apellido|first }}
+                                </div>
+                                <div class="empleado-details">
+                                    <h4>{{ solicitud.empleado.nombre }} {{ solicitud.empleado.apellido }}</h4>
+                                    <div class="empleado-position">{{ solicitud.empleado.puesto }}</div>
+                                    <div class="empleado-position" style="font-size: 0.8rem; color: #a0aec0;">{{ solicitud.empleado.get_gerencia_display|default:"Sin gerencia" }}</div>
+                                    <div class="empleado-position" style="font-size: 0.75rem; color: #cbd5e0;">{{ solicitud.empleado.get_jerarquia_display }}</div>
+                                </div>
+                            </div>
+                            <span class="estado-badge estado-pendiente">Pendiente</span>
+                        </div>
+
+                        <div class="solicitud-details">
+                            <div class="detail-item">
+                                <div class="detail-label">Fecha de Inicio</div>
+                                <div class="detail-value">{{ solicitud.fecha_inicio|date:"d/m/Y" }}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Fecha de Fin</div>
+                                <div class="detail-value">{{ solicitud.fecha_fin|date:"d/m/Y" }}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Días Solicitados</div>
+                                <div class="detail-value">{{ solicitud.dias_solicitados }} días</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Tipo de Vacaciones</div>
+                                <div class="detail-value">
+                                    <span class="tipo-badge tipo-{{ solicitud.tipo_vacaciones }}">
+                                        {{ solicitud.get_tipo_vacaciones_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Período</div>
+                                <div class="detail-value">{{ solicitud.periodo_vacacional }}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Fines de Semana</div>
+                                <div class="detail-value">{{ solicitud.contar_fines_semana }} días</div>
+                            </div>
+                        </div>
+
+                        {% if solicitud.motivo %}
+                        <div style="margin-bottom: 1rem; padding: 0.75rem; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div style="font-size: 0.8rem; color: #718096; margin-bottom: 0.25rem;">Motivo:</div>
+                            <div style="color: #2d3748; font-style: italic;">"{{ solicitud.motivo }}"</div>
+                        </div>
+                        {% endif %}
+
+                        <div class="solicitud-actions">
+                            <a href="{% url 'procesar_solicitud_rrhh' solicitud.id %}" class="btn btn-primary">
+                                <i class="fas fa-eye"></i> Revisar y Procesar
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-check-circle"></i>
+                        <h3>¡Excelente trabajo!</h3>
+                        <p>No hay solicitudes pendientes de revisión en este momento.</p>
+                    </div>
+                {% endif %}
+                
+                <h2 class="section-title" style="margin-top:2rem;">
+                    <i class="fas fa-user-plus"></i>
+                    Nuevo Colaborador - Pendientes
+                </h2>
+                {% if solicitudes_nc_pendientes %}
+                    {% for s in solicitudes_nc_pendientes %}
+                    <div class="solicitud-item">
+                        <div class="solicitud-header">
+                            <div>
+                                <strong>{{ s.area_solicitante }}</strong> - {{ s.puesto_a_solicitud }}
+                            </div>
+                            <span class="estado-badge estado-pendiente">Pendiente</span>
+                        </div>
+                        <div class="solicitud-details">
+                            <div class="detail-item"><div class="detail-label">Grupo</div><div class="detail-value">{{ s.get_grupo_ocupacional_display }}</div></div>
+                            <div class="detail-item"><div class="detail-label">Inicio</div><div class="detail-value">{{ s.fecha_inicio_labores|date:"d/m/Y" }}</div></div>
+                            <div class="detail-item"><div class="detail-label">Tiempo</div><div class="detail-value">{{ s.tiempo_meses }} meses</div></div>
+                        </div>
+                        <div class="solicitud-actions">
+                            <a href="{% url 'procesar_solicitud_nuevo_colaborador_rrhh' s.id %}" class="btn btn-primary"><i class="fas fa-eye"></i> Revisar</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-check-circle"></i>
+                        <p>No hay solicitudes de nuevo colaborador pendientes.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="sidebar">
+                <div class="quick-actions">
+                    <h3 class="section-title">
+                        <i class="fas fa-bolt"></i>
+                        Acciones Rápidas
+                    </h3>
+
+                    <a href="{% url 'rrhh_control_vacaciones' %}" class="action-btn">
+                        <i class="fas fa-calendar-check"></i>
+                        Control de Vacaciones por Empleado
+                    </a>
+
+                    <a href="{% url 'rrhh_historial_vacaciones' %}" class="action-btn">
+                        <i class="fas fa-list"></i>
+                        Ver historial de vacaciones
+                    </a>
+
+                    <a href="{% url 'rrhh_historial_nuevo_colaborador' %}" class="action-btn">
+                        <i class="fas fa-list"></i>
+                        Ver historial de nuevo colaborador
+                    </a>
+
+                    <a href="{% url 'inicio_empleado' %}" class="action-btn">
+                        <i class="fas fa-home"></i>
+                        Ir al Inicio
+                    </a>
+
+                    <a href="{% url 'perfil_empleado' %}" class="action-btn">
+                        <i class="fas fa-user"></i>
+                        Mi Perfil
+                    </a>
+                </div>
+
+                <div class="area-stats">
+                    <h3 class="section-title">
+                        <i class="fas fa-chart-pie"></i>
+                        Solicitudes por Área
+                    </h3>
+
+                    {% for area, stats in solicitudes_por_area.items %}
+                    <div class="area-item">
+                        <div class="area-name">{{ area }}</div>
+                        <div class="area-numbers">
+                            <div class="area-number area-total">
+                                <i class="fas fa-clipboard-list"></i>
+                                {{ stats.total }}
+                            </div>
+                            <div class="area-number area-pendientes">
+                                <i class="fas fa-clock"></i>
+                                {{ stats.pendientes }}
+                            </div>
+                            <div class="area-number area-aprobadas">
+                                <i class="fas fa-check"></i>
+                                {{ stats.aprobadas }}
+                            </div>
+                            <div class="area-number area-rechazadas">
+                                <i class="fas fa-times"></i>
+                                {{ stats.rechazadas }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

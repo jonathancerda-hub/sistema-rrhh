@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procesar Solicitud - RRHH</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .back-btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .page-title h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .page-title p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.5rem;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .empleado-header {
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .empleado-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: 600;
+            margin: 0 auto 1rem;
+        }
+
+        .empleado-name {
+            font-size: 1.5rem;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .empleado-position {
+            color: #718096;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empleado-email {
+            color: #667eea;
+            font-size: 1rem;
+        }
+
+        .solicitud-details {
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .detail-item {
+            text-align: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .detail-label {
+            font-size: 0.9rem;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .detail-value {
+            font-size: 1.2rem;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .tipo-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tipo-regulares {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .tipo-adelantadas {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            color: white;
+        }
+
+        .tipo-fraccionadas {
+            background: linear-gradient(135deg, #667eea, #5a67d8);
+            color: white;
+        }
+
+        .motivo-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .motivo-label {
+            font-size: 0.9rem;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .motivo-text {
+            color: #2d3748;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        .validation-section {
+            background: linear-gradient(135deg, #fff5f5, #fed7d7);
+            border: 1px solid #feb2b2;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .validation-title {
+            color: #c53030;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .validation-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #feb2b2;
+        }
+
+        .validation-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .validation-icon {
+            color: #38a169;
+            margin-right: 0.5rem;
+        }
+
+        .validation-icon.error {
+            color: #e53e3e;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 1rem;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            min-width: 140px;
+            justify-content: center;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(220, 53, 69, 0.4);
+        }
+
+        .policy-info {
+            background: linear-gradient(135deg, #f0fff4, #dcfce7);
+            border: 1px solid #9ae6b4;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .policy-title {
+            color: #22543d;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .policy-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .policy-list li {
+            padding: 0.5rem 0;
+            color: #22543d;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .policy-list li:before {
+            content: "✓";
+            color: #38a169;
+            font-weight: bold;
+        }
+
+        .quick-actions {
+            margin-top: 2rem;
+        }
+
+        .action-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .page-title h1 {
+                font-size: 2rem;
+            }
+            
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-title">
+                <i class="fas fa-clipboard-check"></i>
+                Procesar Solicitud de Vacaciones
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <span>{{ empleado.nombre }} {{ empleado.apellido }}</span>
+                <a href="{% url 'rrhh_dashboard' %}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-title">
+            <h1>📋 Revisar Solicitud de Vacaciones</h1>
+            <p>Valida que la solicitud cumpla con las políticas de la empresa</p>
+        </div>
+
+        <div class="content-grid">
+            <div class="main-content">
+                <!-- Información del Empleado -->
+                <div class="empleado-header">
+                    <div class="empleado-avatar">
+                        {{ solicitud.empleado.nombre|first }}{{ solicitud.empleado.apellido|first }}
+                    </div>
+                    <div class="empleado-name">{{ solicitud.empleado.nombre }} {{ solicitud.empleado.apellido }}</div>
+                    <div class="empleado-position">{{ solicitud.empleado.puesto }}</div>
+                    <div class="empleado-position" style="font-size: 1rem; color: #a0aec0;">{{ solicitud.empleado.get_gerencia_display|default:"Sin gerencia" }}</div>
+                    <div class="empleado-position" style="font-size: 0.9rem; color: #cbd5e0;">{{ solicitud.empleado.get_jerarquia_display }}</div>
+                    <div class="empleado-email">{{ solicitud.empleado.email }}</div>
+                </div>
+
+                <!-- Detalles de la Solicitud -->
+                <div class="solicitud-details">
+                    <h3 class="section-title">
+                        <i class="fas fa-calendar-alt"></i>
+                        Detalles de la Solicitud
+                    </h3>
+                    
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Fecha de Inicio</div>
+                            <div class="detail-value">{{ solicitud.fecha_inicio|date:"d/m/Y" }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Fecha de Fin</div>
+                            <div class="detail-value">{{ solicitud.fecha_fin|date:"d/m/Y" }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Días Solicitados</div>
+                            <div class="detail-value">{{ solicitud.dias_solicitados }} días</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Tipo de Vacaciones</div>
+                            <div class="detail-value">
+                                <span class="tipo-badge tipo-{{ solicitud.tipo_vacaciones }}">
+                                    {{ solicitud.get_tipo_vacaciones_display }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Período Vacacional</div>
+                            <div class="detail-value">{{ solicitud.periodo_vacacional }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Fines de Semana</div>
+                            <div class="detail-value">{{ solicitud.contar_fines_semana }} días</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Motivo de la Solicitud -->
+                {% if solicitud.motivo %}
+                <div class="motivo-section">
+                    <div class="motivo-label">Motivo de la Solicitud</div>
+                    <div class="motivo-text">"{{ solicitud.motivo }}"</div>
+                </div>
+                {% endif %}
+
+                <!-- Validación de Políticas -->
+                <div class="validation-section">
+                    <h3 class="validation-title">
+                        <i class="fas fa-shield-alt"></i>
+                        Validación de Políticas de la Empresa
+                    </h3>
+                    
+                    <div class="validation-item">
+                        <i class="fas fa-check validation-icon"></i>
+                        <strong>Inclusión de Fines de Semana:</strong> 
+                        {% if solicitud.validar_incluye_fines_semana %}
+                            ✅ La solicitud incluye {{ solicitud.contar_fines_semana }} fin(es) de semana
+                        {% else %}
+                            ❌ La solicitud debe incluir al menos un sábado o domingo
+                        {% endif %}
+                    </div>
+                    
+                    <div class="validation-item">
+                        <i class="fas fa-check validation-icon"></i>
+                        <strong>Límite de Días:</strong> 
+                        {% if solicitud.dias_solicitados <= solicitud.calcular_dias_disponibles %}
+                            ✅ {{ solicitud.dias_solicitados }} días solicitados (límite: {{ solicitud.calcular_dias_disponibles }} días)
+                        {% else %}
+                            ❌ Excede el límite de {{ solicitud.calcular_dias_disponibles }} días para el tipo '{{ solicitud.get_tipo_vacaciones_display }}'
+                        {% endif %}
+                    </div>
+                    
+                    <div class="validation-item">
+                        <i class="fas fa-check validation-icon"></i>
+                        <strong>Días Consecutivos:</strong> 
+                        {% if solicitud.dias_solicitados <= 30 %}
+                            ✅ {{ solicitud.dias_solicitados }} días consecutivos (máximo: 30 días)
+                        {% else %}
+                            ❌ No se pueden solicitar más de 30 días consecutivos
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Formulario de Decisión -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-gavel"></i>
+                        Decisión Final
+                    </h3>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="comentario" class="form-label">Comentario de RRHH (opcional)</label>
+                            <textarea 
+                                id="comentario" 
+                                name="comentario" 
+                                class="form-textarea" 
+                                placeholder="Agrega un comentario sobre tu decisión..."
+                            ></textarea>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" name="accion" value="aprobado" class="btn btn-success">
+                                <i class="fas fa-check"></i>
+                                Aprobar Solicitud
+                            </button>
+                            <button type="submit" name="accion" value="rechazado" class="btn btn-danger">
+                                <i class="fas fa-times"></i>
+                                Rechazar Solicitud
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <!-- Información de Políticas -->
+                <div class="policy-info">
+                    <h3 class="policy-title">
+                        <i class="fas fa-info-circle"></i>
+                        Políticas de Vacaciones
+                    </h3>
+                    
+                    <ul class="policy-list">
+                        <li>Debe incluir al menos un fin de semana</li>
+                        <li>No exceder el límite según tipo de vacaciones</li>
+                        <li>Máximo 30 días consecutivos</li>
+                        <li>Validación final por RRHH</li>
+                    </ul>
+                </div>
+
+                <!-- Información del Empleado -->
+                <div style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #e2e8f0;">
+                    <h4 style="color: #2d3748; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-user-clock"></i>
+                        Antigüedad del Empleado
+                    </h4>
+                    
+                    <div style="text-align: center; padding: 1rem; background: linear-gradient(135deg, #f7fafc, #edf2f7); border-radius: 8px;">
+                        <div style="font-size: 2rem; font-weight: 700; color: #667eea; margin-bottom: 0.5rem;">
+                            {{ solicitud.empleado.fecha_contratacion|timesince }}
+                        </div>
+                        <div style="color: #718096; font-size: 0.9rem;">
+                            desde la contratación
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Días Disponibles -->
+                <div style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #e2e8f0;">
+                    <h4 style="color: #2d3748; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-calendar-check"></i>
+                        Días Disponibles
+                    </h4>
+                    
+                    <div style="text-align: center; padding: 1rem; background: linear-gradient(135deg, #f0fff4, #dcfce7); border-radius: 8px;">
+                        <div style="font-size: 2rem; font-weight: 700; color: #38a169; margin-bottom: 0.5rem;">
+                            {{ solicitud.calcular_dias_disponibles }}
+                        </div>
+                        <div style="color: #22543d; font-size: 0.9rem;">
+                            días para {{ solicitud.get_tipo_vacaciones_display|lower }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acciones Rápidas -->
+                <div class="quick-actions">
+                    <h3 class="section-title">
+                        <i class="fas fa-bolt"></i>
+                        Acciones Rápidas
+                    </h3>
+
+                    <a href="{% url 'rrhh_dashboard' %}" class="action-btn">
+                        <i class="fas fa-arrow-left"></i>
+                        Volver al Dashboard
+                    </a>
+
+                    <a href="{% url 'inicio_empleado' %}" class="action-btn">
+                        <i class="fas fa-home"></i>
+                        Ir al Inicio
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

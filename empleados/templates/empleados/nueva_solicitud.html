@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Nueva Solicitud de Vacaciones</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        form { display: flex; flex-direction: column; max-width: 400px; }
+        label { margin-top: 1em; }
+        input, textarea { padding: 0.5em; margin-top: 0.5em; }
+        button { margin-top: 1.5em; padding: 0.7em; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Crear Nueva Solicitud de Vacaciones</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="fecha_inicio">Fecha de Inicio:</label>
+        <input type="date" id="fecha_inicio" name="fecha_inicio" required>
+
+        <label for="fecha_fin">Fecha de Fin:</label>
+        <input type="date" id="fecha_fin" name="fecha_fin" required>
+
+        <label for="comentarios">Comentarios (opcional):</label>
+        <textarea id="comentarios" name="comentarios" rows="4"></textarea>
+
+        <button type="submit">Enviar Solicitud</button>
+    </form>
+</body>
+</html>

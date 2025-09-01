@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actualización de Solicitud</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+            color: white;
+        }
+        .header.aprobado {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        .header.rechazado {
+            background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+        }
+        .header.cancelado {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+        .content {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+            border: 1px solid #dee2e6;
+        }
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .info-value {
+            color: #333;
+        }
+        .status-badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px 0;
+        }
+        .status-aprobado {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-rechazado {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status-cancelado {
+            background: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    {% if solicitud.estado == 'aprobado' %}
+        <div class="header aprobado">
+            <h1>✅ Solicitud Aprobada</h1>
+            <p>¡Buenas noticias!</p>
+        </div>
+    {% elif solicitud.estado == 'rechazado' %}
+        <div class="header rechazado">
+            <h1>❌ Solicitud Rechazada</h1>
+            <p>Información sobre tu solicitud</p>
+        </div>
+    {% elif solicitud.estado == 'cancelado' %}
+        <div class="header cancelado">
+            <h1>🚫 Solicitud Cancelada</h1>
+            <p>Tu solicitud ha sido cancelada</p>
+        </div>
+    {% endif %}
+    
+    <div class="content">
+        <h2>Hola {{ empleado.nombre }} 👋</h2>
+        
+        {% if solicitud.estado == 'aprobado' %}
+            <p>¡Excelentes noticias! Tu solicitud de vacaciones ha sido <strong>aprobada</strong>. 🎉</p>
+        {% elif solicitud.estado == 'rechazado' %}
+            <p>Lamentamos informarte que tu solicitud de vacaciones ha sido <strong>rechazada</strong>.</p>
+        {% elif solicitud.estado == 'cancelado' %}
+            <p>Tu solicitud de vacaciones ha sido <strong>cancelada</strong>.</p>
+        {% endif %}
+        
+        <div class="status-badge status-{{ solicitud.estado }}">
+            Estado: {{ solicitud.get_estado_display|upper }}
+        </div>
+        
+        <div class="info-box">
+            <h3>📄 Detalles de tu Solicitud</h3>
+            
+            <div class="info-row">
+                <span class="info-label">📅 Fecha de Inicio:</span>
+                <span class="info-value">{{ solicitud.fecha_inicio|date:"d/m/Y" }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">📅 Fecha de Fin:</span>
+                <span class="info-value">{{ solicitud.fecha_fin|date:"d/m/Y" }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">📊 Días Solicitados:</span>
+                <span class="info-value">{{ solicitud.dias_solicitados }} día{{ solicitud.dias_solicitados|pluralize }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">🏖️ Tipo:</span>
+                <span class="info-value">{{ solicitud.get_tipo_vacaciones_display }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">📅 Período:</span>
+                <span class="info-value">{{ solicitud.get_periodo_vacacional_display }}</span>
+            </div>
+            
+            {% if solicitud.comentarios_aprobacion %}
+            <div class="info-row">
+                <span class="info-label">💬 Comentarios:</span>
+                <span class="info-value">{{ solicitud.comentarios_aprobacion }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="info-row">
+                <span class="info-label">⏰ Procesado el:</span>
+                <span class="info-value">{{ solicitud.fecha_aprobacion|date:"d/m/Y H:i"|default:"Fecha no disponible" }}</span>
+            </div>
+        </div>
+        
+        {% if solicitud.estado == 'aprobado' %}
+        <div class="info-box">
+            <h3>📋 Próximos Pasos</h3>
+            <ul>
+                <li>Tus vacaciones están confirmadas para las fechas solicitadas</li>
+                <li>Asegúrate de coordinar con tu equipo antes de tu ausencia</li>
+                <li>Prepara la transición de tus tareas pendientes</li>
+                <li>¡Disfruta tu tiempo de descanso! 🏖️</li>
+            </ul>
+        </div>
+        {% elif solicitud.estado == 'rechazado' %}
+        <div class="info-box">
+            <h3>📋 ¿Qué puedes hacer?</h3>
+            <ul>
+                <li>Revisa los comentarios del responsable de la aprobación</li>
+                <li>Considera solicitar fechas alternativas</li>
+                <li>Consulta con tu manager sobre otras opciones</li>
+                <li>Puedes crear una nueva solicitud cuando sea apropiado</li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="footer">
+        <p>Este es un mensaje automático del Sistema de RRHH</p>
+        <p>Si tienes preguntas, contacta a tu manager o al departamento de RRHH</p>
+        <p><small>© {{ "now"|date:"Y" }} Sistema de Recursos Humanos</small></p>
+    </div>
+</body>
+</html>

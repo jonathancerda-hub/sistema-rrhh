@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis Solicitudes de Vacaciones</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+        th, td { border: 1px solid #ccc; padding: 0.8em; text-align: left; }
+        th { background-color: #f2f2f2; }
+        a { text-decoration: none; }
+        .button { background-color: #4CAF50; color: white; padding: 10px 15px; text-align: center; display: inline-block; font-size: 16px; margin: 1em 0; cursor: pointer; border: none;}
+    </style>
+</head>
+<body>
+    <h1>Mis Solicitudes de Vacaciones</h1>
+    <a href="{% url 'nueva_solicitud_vacaciones' %}" class="button">Crear Nueva Solicitud</a>
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha de Inicio</th>
+                <th>Fecha de Fin</th>
+                <th>Estado</th>
+                <th>Comentarios</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for solicitud in solicitudes %}
+            <tr>
+                <td>{{ solicitud.fecha_inicio }}</td>
+                <td>{{ solicitud.fecha_fin }}</td>
+                <td>{{ solicitud.estado }}</td>
+                <td>{{ solicitud.comentarios|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">No tienes solicitudes de vacaciones.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

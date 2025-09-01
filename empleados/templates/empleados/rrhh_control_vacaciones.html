@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Vacaciones - RRHH</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <style>
+    body{background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh}
+    .page{max-width:1400px;margin:32px auto;padding:0 16px}
+    .card-ui{background:#fff;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,.1);overflow:hidden}
+    .card-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 20px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+    .table thead th{text-transform:uppercase;font-size:.8rem;letter-spacing:.4px;color:#4a5568;white-space:nowrap}
+    .table td{vertical-align:middle}
+    .estado-badge{border-radius:999px;padding:4px 10px;font-size:.75rem}
+    .estado-ok{background:#d4edda;color:#155724}
+    .estado-alerta{background:#fff3cd;color:#856404}
+    .estado-critico{background:#f8d7da;color:#721c24}
+    .estado-info{background:#d1ecf1;color:#0c5460}
+    .alerta-item{font-size:.8rem;margin:2px 0;padding:2px 6px;border-radius:4px;background:#f8f9fa}
+    .btn-sm{padding:4px 8px;font-size:.75rem}
+    .progress{height:8px;border-radius:999px}
+    .progress-bar{transition:width .3s ease}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="card-ui">
+      <div class="card-header">
+        <h4 class="mb-0">Control de Vacaciones por Empleado</h4>
+        <a class="btn btn-light" href="{% url 'rrhh_dashboard' %}">Regresar al Dashboard</a>
+      </div>
+      <div class="p-3">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Empleado</th>
+                <th>Área</th>
+                <th>Antigüedad</th>
+                <th>Días Disponibles</th>
+                <th>Días Tomados</th>
+                <th>Días Restantes</th>
+                <th>Pendientes</th>
+                <th>Última Solicitud</th>
+                <th>Alertas</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ev in empleados_vacaciones %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;font-size:.8rem;font-weight:600">
+                      {{ ev.empleado.nombre|first }}{{ ev.empleado.apellido|first }}
+                    </div>
+                    <div>
+                      <div class="fw-bold">{{ ev.empleado.nombre }} {{ ev.empleado.apellido }}</div>
+                      <small class="text-muted">{{ ev.empleado.email }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ ev.empleado.puesto }}</td>
+                <td>
+                  <div class="text-center">
+                    <div class="fw-bold">{{ ev.antiguedad_dias|floatformat:0 }}</div>
+                    <small class="text-muted">días</small>
+                  </div>
+                </td>
+                <td>
+                  <div class="text-center">
+                    <div class="fw-bold">{{ ev.dias_por_antiguedad }}</div>
+                    <small class="text-muted">por año</small>
+                  </div>
+                </td>
+                <td>
+                  <div class="text-center">
+                    <div class="fw-bold">{{ ev.dias_tomados }}</div>
+                    <small class="text-muted">utilizados</small>
+                  </div>
+                </td>
+                <td>
+                  <div class="text-center">
+                    <div class="fw-bold {% if ev.dias_restantes <= 5 %}text-danger{% elif ev.dias_restantes <= 10 %}text-warning{% else %}text-success{% endif %}">
+                      {{ ev.dias_restantes }}
+                    </div>
+                    <div class="progress mt-1" style="width:60px;margin:0 auto">
+                      {% if ev.dias_por_antiguedad > 0 %}
+                        {% widthratio ev.dias_restantes ev.dias_por_antiguedad 100 as progress_width %}
+                        <div class="progress-bar {% if ev.dias_restantes <= 5 %}bg-danger{% elif ev.dias_restantes <= 10 %}bg-warning{% else %}bg-success{% endif %}" 
+                             style="width:{{ progress_width }}%"></div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  {% if ev.solicitudes_pendientes > 0 %}
+                    <div class="text-center">
+                      <div class="fw-bold text-warning">{{ ev.solicitudes_pendientes }}</div>
+                      <small class="text-muted">{{ ev.dias_pendientes }} días</small>
+                    </div>
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if ev.ultima_solicitud %}
+                    <div class="text-center">
+                      <div class="fw-bold">{{ ev.ultima_solicitud.fecha_solicitud|date:"d/m/Y" }}</div>
+                      <small class="text-muted">{{ ev.ultima_solicitud.get_estado_display }}</small>
+                    </div>
+                  {% else %}
+                    <span class="text-muted">Sin solicitudes</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if ev.alertas %}
+                    <div class="d-flex flex-column gap-1">
+                      {% for alerta in ev.alertas|slice:":3" %}
+                        <div class="alerta-item 
+                          {% if '🚨' in alerta %}estado-critico
+                          {% elif '⚠️' in alerta %}estado-alerta
+                          {% elif '🔄' in alerta %}estado-info
+                          {% else %}estado-ok{% endif %}">
+                          {{ alerta }}
+                        </div>
+                      {% endfor %}
+                      {% if ev.alertas|length > 3 %}
+                        <small class="text-muted">+{{ ev.alertas|length|add:"-3" }} más</small>
+                      {% endif %}
+                    </div>
+                  {% else %}
+                    <span class="text-success">✅ Sin alertas</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="d-flex gap-1">
+                    {% if ev.alertas %}
+                      <a href="{% url 'rrhh_notificar_manager_vacaciones' ev.empleado.id %}" 
+                         class="btn btn-sm btn-warning" title="Notificar al Manager">
+                        📧
+                      </a>
+                    {% endif %}
+                    <a href="{% url 'rrhh_historial_vacaciones' %}?empleado={{ ev.empleado.id }}" 
+                       class="btn btn-sm btn-outline-primary" title="Ver historial">
+                      📋
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="10" class="text-center text-muted py-4">No hay empleados registrados</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="mt-4 p-3 bg-light rounded">
+          <h6 class="mb-2">📊 Resumen de Alertas</h6>
+          <div class="row text-center">
+            <div class="col">
+              <div class="text-danger fw-bold">{{ empleados_vacaciones|length }}</div>
+              <small class="text-muted">Total Empleados</small>
+            </div>
+            <div class="col">
+              <div class="text-warning fw-bold">
+                {% if empleados_vacaciones %}
+                  {{ empleados_vacaciones.0.dias_restantes }}
+                {% else %}
+                  0
+                {% endif %}
+              </div>
+              <small class="text-muted">Días Mínimos Restantes</small>
+            </div>
+            <div class="col">
+              <div class="text-info fw-bold">
+                {% if empleados_vacaciones %}
+                  {{ empleados_vacaciones.0.antiguedad_dias|floatformat:0 }}
+                {% else %}
+                  0
+                {% endif %}
+              </div>
+              <small class="text-muted">Antigüedad Mínima (días)</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solicitud de Nuevo Colaborador</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <style>
+    body{
+      background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      min-height:100vh;
+    }
+    .page-wrapper{max-width:1100px;margin:32px auto;padding:0 16px}
+    .card-ui{
+      background: rgba(255,255,255,.96);
+      border: 2px solid rgba(255,255,255,.3);
+      box-shadow: 0 15px 35px rgba(0,0,0,.12);
+      border-radius: 20px;
+      overflow:hidden;
+    }
+    .card-header{
+      display:flex;align-items:center;gap:12px;justify-content:space-between;
+      padding:20px 24px;
+      background: linear-gradient(135deg,#6b8cff,#8a5bd0);
+      color:#fff;
+    }
+    .card-header h1{font-size:1.35rem;margin:0}
+    .card-body{padding:24px}
+    .form-label{font-weight:600;color:#4a5568}
+    .help-text{font-size:.85rem;color:#718096}
+    .btn-gradient{background:linear-gradient(135deg,#667eea,#764ba2);border:none}
+    .btn-gradient:hover{filter:brightness(1.05)}
+    .chip{
+      display:inline-block;background:#edf2f7;border-radius:999px;padding:4px 10px;font-size:.8rem;color:#4a5568
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrapper">
+    <div class="card-ui">
+      <div class="card-header">
+        <h1>Solicitud de Nuevo Colaborador</h1>
+        <span class="chip">Jefe/Gerente</span>
+      </div>
+      <div class="card-body">
+    <form method="post" class="needs-validation" novalidate>
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Área Solicitante</label>
+          <input type="text" name="area_solicitante" value="{{ form.initial.area_solicitante|default:empleado.puesto }}" class="form-control bg-light" readonly>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_persona_responsable">Persona Responsable</label>
+          {{ form.persona_responsable }}
+          <div class="help-text">Quien dará seguimiento al proceso</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_fecha_inicio_labores">Fecha de inicio de labores</label>
+          {{ form.fecha_inicio_labores }}
+          <div class="help-text">Propuesta de incorporación</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_grupo_ocupacional">Grupo Ocupacional</label>
+          {{ form.grupo_ocupacional }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_puesto_a_solicitud">Puesto a Solicitud</label>
+          {{ form.puesto_a_solicitud }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_denominacion_puesto">Denominación del Puesto</label>
+          {{ form.denominacion_puesto }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="id_motivo_contratacion">Motivo de la contratación</label>
+          {{ form.motivo_contratacion }}
+          <div class="help-text">Describe brevemente la necesidad del puesto</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_modalidad_contratacion">Modalidad de Contratación</label>
+          {{ form.modalidad_contratacion }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_tiempo_meses">Especificar Tiempo (Meses)</label>
+          {{ form.tiempo_meses }}
+        </div>
+      </div>
+
+             <div class="d-flex gap-2 mt-4">
+         <button class="btn btn-gradient text-white" type="submit"><i class="bi bi-send"></i> Enviar Solicitud</button>
+         <a class="btn btn-outline-secondary" href="{% url 'lista_solicitudes_nuevo_colaborador' %}">Ver mis solicitudes</a>
+         <button type="button" class="btn btn-outline-danger" onclick="cancelarFormulario()">Cancelar</button>
+         <a class="btn btn-outline-primary" href="{% url 'manager_dashboard' %}">Regresar</a>
+       </div>
+     </form>
+   </div>
+ </div>
+</div>
+
+<script>
+  function cancelarFormulario() {
+    if (confirm('¿Estás seguro de que quieres cancelar? Se perderán todos los datos ingresados.')) {
+      window.location.href = "{% url 'manager_dashboard' %}";
+    }
+  }
+</script>
+    </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

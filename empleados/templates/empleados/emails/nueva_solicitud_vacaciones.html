@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Solicitud de Vacaciones</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+        }
+        .content {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+            border: 1px solid #dee2e6;
+        }
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .info-value {
+            color: #333;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+        .urgent {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 Nueva Solicitud de Vacaciones</h1>
+        <p>Sistema de Recursos Humanos</p>
+    </div>
+    
+    <div class="content">
+        <h2>¡Hola! 👋</h2>
+        <p>Se ha creado una nueva solicitud de vacaciones que requiere tu aprobación.</p>
+        
+        <div class="info-box">
+            <h3>📄 Detalles de la Solicitud</h3>
+            
+            <div class="info-row">
+                <span class="info-label">👤 Empleado:</span>
+                <span class="info-value">{{ empleado.nombre }} {{ empleado.apellido }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">📧 Email:</span>
+                <span class="info-value">{{ empleado.email }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">💼 Puesto:</span>
+                <span class="info-value">{{ empleado.puesto }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">🏢 Gerencia:</span>
+                <span class="info-value">{{ empleado.get_gerencia_display|default:"No asignada" }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">📅 Fecha de Inicio:</span>
+                <span class="info-value">{{ solicitud.fecha_inicio|date:"d/m/Y" }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">📅 Fecha de Fin:</span>
+                <span class="info-value">{{ solicitud.fecha_fin|date:"d/m/Y" }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">📊 Días Solicitados:</span>
+                <span class="info-value"><strong>{{ dias_solicitados }} día{{ dias_solicitados|pluralize }}</strong></span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">🏖️ Tipo:</span>
+                <span class="info-value">{{ solicitud.get_tipo_vacaciones_display }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">📅 Período:</span>
+                <span class="info-value">{{ solicitud.get_periodo_vacacional_display }}</span>
+            </div>
+            
+            {% if solicitud.motivo %}
+            <div class="info-row">
+                <span class="info-label">📝 Motivo:</span>
+                <span class="info-value">{{ solicitud.motivo }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="info-row">
+                <span class="info-label">📋 Estado:</span>
+                <span class="info-value">{{ solicitud.get_estado_display }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">⏰ Fecha de Solicitud:</span>
+                <span class="info-value">{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</span>
+            </div>
+        </div>
+        
+        {% if solicitud.fecha_inicio|timeuntil %}
+        <div class="info-box urgent">
+            <h3>⏰ Información Importante</h3>
+            <p><strong>Las vacaciones inician en: {{ solicitud.fecha_inicio|timeuntil }}</strong></p>
+            <p>Se recomienda revisar y procesar esta solicitud lo antes posible.</p>
+        </div>
+        {% endif %}
+        
+        <div style="text-align: center;">
+            <a href="{{ url_procesar }}" class="button">
+                👁️ Ver y Procesar Solicitud
+            </a>
+        </div>
+        
+        <div class="info-box">
+            <h3>📋 Próximos Pasos</h3>
+            <ul>
+                <li>Revisa los detalles de la solicitud</li>
+                <li>Verifica la disponibilidad del empleado</li>
+                <li>Consulta el calendario de vacaciones del equipo</li>
+                <li>Aprueba o rechaza la solicitud con comentarios</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Este es un mensaje automático del Sistema de RRHH</p>
+        <p>Por favor, no respondas a este email</p>
+        <p><small>© {{ "now"|date:"Y" }} Sistema de Recursos Humanos</small></p>
+    </div>
+</body>
+</html>

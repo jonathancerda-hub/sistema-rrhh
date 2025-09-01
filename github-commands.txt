@@ -1,0 +1,13 @@
+# Comandos para conectar con GitHub
+
+# 1. Crear repositorio en GitHub (desde la web o CLI)
+# gh repo create sistema-rrhh --public
+
+# 2. Agregar remote (reemplaza TU-USUARIO)
+git remote add origin https://github.com/TU-USUARIO/sistema-rrhh.git
+
+# 3. Subir código
+git push -u origin main
+
+# 4. Verificar
+git remote -v
