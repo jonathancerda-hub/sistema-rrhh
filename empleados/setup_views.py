@@ -17,35 +17,93 @@ def inicializar_datos_produccion(request):
     
     if request.method == 'GET':
         return HttpResponse(f"""
+        <!DOCTYPE html>
         <html>
-        <head><title>Inicializar Datos - Sistema RRHH</title></head>
-        <body style="font-family: Arial; padding: 20px;">
-            <h2>Estado Actual de la Base de Datos</h2>
-            <p><strong>Usuarios existentes:</strong> {usuarios_existentes}</p>
-            <p><strong>Empleados existentes:</strong> {empleados_existentes}</p>
-            
-            <h3>Crear Datos Iniciales</h3>
-            <button onclick="inicializar()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px;">
-                Crear Empleados y Asociaciones
-            </button>
-            
-            <div id="resultado" style="margin-top: 20px;"></div>
-            
-            <script>
-            function inicializar() {{
-                fetch('/setup/inicializar/', {{
-                    method: 'POST',
-                    headers: {{
-                        'Content-Type': 'application/json',
-                    }}
-                }})
-                .then(response => response.json())
-                .then(data => {{
-                    document.getElementById('resultado').innerHTML = 
-                        '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-                }});
-            }}
-            </script>
+        <head>
+            <title>Inicializar Datos - Sistema RRHH</title>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }}
+                .container {{ max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
+                .btn {{ padding: 15px 30px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }}
+                .btn:hover {{ background: #0056b3; }}
+                .resultado {{ margin-top: 20px; padding: 15px; border-radius: 5px; }}
+                .success {{ background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }}
+                .error {{ background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }}
+                .loading {{ background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h2>Estado Actual de la Base de Datos</h2>
+                <p><strong>Usuarios existentes:</strong> {usuarios_existentes}</p>
+                <p><strong>Empleados existentes:</strong> {empleados_existentes}</p>
+                
+                <h3>Crear Datos Iniciales</h3>
+                <button onclick="inicializar()" class="btn" id="btnInicializar">
+                    Crear Empleados y Asociaciones
+                </button>
+                
+                <div id="resultado"></div>
+                
+                <script>
+                function inicializar() {{
+                    const btn = document.getElementById('btnInicializar');
+                    const resultado = document.getElementById('resultado');
+                    
+                    btn.disabled = true;
+                    btn.innerHTML = 'Procesando...';
+                    resultado.innerHTML = '<div class="loading">Creando empleados y asociaciones...</div>';
+                    
+                    fetch(window.location.href, {{
+                        method: 'POST',
+                        headers: {{
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }},
+                        credentials: 'same-origin'
+                    }})
+                    .then(response => {{
+                        if (!response.ok) {{
+                            throw new Error('Error en el servidor: ' + response.status);
+                        }}
+                        return response.json();
+                    }})
+                    .then(data => {{
+                        btn.disabled = false;
+                        btn.innerHTML = 'Completado ✓';
+                        
+                        if (data.status === 'success') {{
+                            resultado.innerHTML = `
+                                <div class="success">
+                                    <h4>✅ ${{data.message}}</h4>
+                                    <p><strong>Resultados:</strong></p>
+                                    <ul>${{data.resultados.map(r => '<li>' + r + '</li>').join('')}}</ul>
+                                    <p><strong>Total usuarios:</strong> ${{data.total_usuarios}}</p>
+                                    <p><strong>Total empleados:</strong> ${{data.total_empleados}}</p>
+                                    <h4>🔑 Credenciales de acceso:</h4>
+                                    <ul>
+                                        <li>RRHH: ${{data.credenciales.rrhh}}</li>
+                                        <li>Manager: ${{data.credenciales.manager}}</li>
+                                        <li>Empleado: ${{data.credenciales.empleado}}</li>
+                                    </ul>
+                                    <p><strong>¡Ya puedes hacer login!</strong></p>
+                                    <a href="/login/" style="display: inline-block; padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 5px; margin-top: 10px;">Ir al Login</a>
+                                </div>
+                            `;
+                        }} else {{
+                            resultado.innerHTML = `<div class="error">❌ ${{data.message}}</div>`;
+                        }}
+                    }})
+                    .catch(error => {{
+                        btn.disabled = false;
+                        btn.innerHTML = 'Reintentar';
+                        resultado.innerHTML = `<div class="error">❌ Error: ${{error.message}}</div>`;
+                        console.error('Error completo:', error);
+                    }});
+                }}
+                </script>
+            </div>
         </body>
         </html>
         """)
