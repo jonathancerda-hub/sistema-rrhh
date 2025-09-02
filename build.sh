@@ -19,4 +19,8 @@ python manage.py collectstatic --no-input --clear
 echo "Applying migrations..."
 python manage.py migrate --no-input
 
+# Create initial users (only if they don't exist)
+echo "Creating initial users..."
+python manage.py inicializar_produccion
+
 echo "=== Build completed successfully ==="
