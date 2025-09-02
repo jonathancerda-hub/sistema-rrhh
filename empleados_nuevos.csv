@@ -1,0 +1,6 @@
+nombre,apellido,dni,email,puesto,area,gerencia,es_manager,es_rrhh,fecha_contratacion
+Roberto,Mendoza,11111111,roberto.mendoza@empresa.com,Analista de Datos,Tecnología,gerencia_desarrollo_organizacional,no,no,15/01/2023
+Sandra,Vásquez,22222222,sandra.vasquez@empresa.com,Coordinadora Contable,Contabilidad,gerencia_administracion_finanzas,sí,no,20/03/2022
+Miguel,Torres,33333333,miguel.torres@empresa.com,Supervisor de Ventas,Ventas,gerencia_comercial_local,sí,no,10/06/2021
+Lucia,Rivera,44444444,lucia.rivera@empresa.com,Analista RRHH,Recursos Humanos,gerencia_desarrollo_organizacional,no,sí,05/09/2023
+Fernando,Castillo,55555555,fernando.castillo@empresa.com,Desarrollador Full Stack,Tecnología,gerencia_desarrollo_organizacional,no,no,12/11/2023

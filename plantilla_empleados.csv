@@ -1,0 +1,6 @@
+nombre,apellido,dni,email,puesto,area,gerencia,es_manager,es_rrhh,fecha_contratacion
+Juan,Pérez,12345678,juan.perez@empresa.com,Analista de Sistemas,Tecnología,gerencia_desarrollo_organizacional,no,no,15/01/2020
+María,García,23456789,maria.garcia@empresa.com,Contadora,Contabilidad,gerencia_administracion_finanzas,no,no,20/03/2019
+Carlos,López,34567890,carlos.lopez@empresa.com,Jefe de Ventas,Ventas,gerencia_comercial_local,sí,no,10/06/2018
+Ana,Martín,45678901,ana.martin@empresa.com,Especialista RRHH,Recursos Humanos,gerencia_desarrollo_organizacional,no,sí,05/09/2021
+Pedro,Sánchez,56789012,pedro.sanchez@empresa.com,Desarrollador Senior,Tecnología,gerencia_desarrollo_organizacional,sí,no,12/11/2022
