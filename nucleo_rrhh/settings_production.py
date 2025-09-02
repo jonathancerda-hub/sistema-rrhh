@@ -23,12 +23,21 @@ ALLOWED_HOSTS = [
 ]
 
 # Database configuration for Render PostgreSQL
+# La variable DATABASE_URL debe estar configurada en Render.com
 DATABASES = {
     'default': dj_database_url.config(
-        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
-        conn_max_age=600
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
     )
 }
+
+# Si no hay DATABASE_URL configurada, mostrar error claro
+if not os.environ.get('DATABASE_URL'):
+    raise ValueError(
+        "❌ DATABASE_URL no está configurada. "
+        "Debes crear una base de datos PostgreSQL en Render.com y configurar la variable DATABASE_URL."
+    )
 
 # Static files configuration
 STATIC_URL = '/static/'
