@@ -4,11 +4,13 @@ from . import views
 from . import views_notificaciones
 from . import setup_views
 from . import setup_simple
+from . import setup_admin
 
 urlpatterns = [
     # URL TEMPORAL para inicializar datos en producción (ELIMINAR DESPUÉS DE USAR)
     path('setup/inicializar/', setup_views.inicializar_datos_produccion, name='inicializar_produccion'),
     path('setup/simple/', setup_simple.setup_simple, name='setup_simple'),
+    path('setup/admin/', setup_admin.hacer_admin, name='hacer_admin'),
     
     # URL para la página raíz
     path('', views.inicio_empleado, name='inicio_empleado'),

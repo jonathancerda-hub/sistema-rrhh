@@ -15,12 +15,17 @@ def setup_simple(request):
                 username='rrhh',
                 defaults={
                     'email': 'rrhh@empresa.com',
-                    'is_staff': True,
-                    'is_superuser': True
+                    'is_staff': True,      # ✅ Acceso al admin
+                    'is_superuser': True   # ✅ Permisos completos
                 }
             )
             if created:
                 user_rrhh.set_password('rrhh123456')
+                user_rrhh.save()
+            else:
+                # Si ya existe, asegurar que tenga permisos de admin
+                user_rrhh.is_staff = True
+                user_rrhh.is_superuser = True
                 user_rrhh.save()
 
             # Crear empleado RRHH
