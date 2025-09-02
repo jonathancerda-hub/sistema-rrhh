@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: sistema-rrhh
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn nucleo_rrhh.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DJANGO_SETTINGS_MODULE
+        value: nucleo_rrhh.settings_production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: 4

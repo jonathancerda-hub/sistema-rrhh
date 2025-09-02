@@ -6,6 +6,15 @@ __pycache__/
 # C extensions
 *.so
 
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Static files collected for production
+staticfiles/
+static_collected/
+
 # Distribution / packaging
 .Python
 build/
