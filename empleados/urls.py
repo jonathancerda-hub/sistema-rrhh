@@ -8,6 +8,7 @@ from . import setup_admin
 from . import crear_superusuario
 from . import ver_datos
 from . import fix_admin
+from . import views_setup
 
 urlpatterns = [
     # URL TEMPORAL para inicializar datos en producción (ELIMINAR DESPUÉS DE USAR)
@@ -15,6 +16,7 @@ urlpatterns = [
     path('setup/simple/', setup_simple.setup_simple, name='setup_simple'),
     path('setup/admin/', setup_admin.hacer_admin, name='hacer_admin'),
     path('setup/superuser/', crear_superusuario.crear_superusuario, name='crear_superusuario'),
+    path('setup/organigrama/', views_setup.cargar_usuarios_organigrama, name='cargar_organigrama'),
     path('datos/', ver_datos.ver_datos_existentes, name='ver_datos_existentes'),
     path('fix-admin/', fix_admin.fix_admin_access, name='fix_admin_access'),
     
