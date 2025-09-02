@@ -224,15 +224,20 @@ def inicio_empleado(request):
         dias_tomados_total = sum(s.dias_solicitados for s in solicitudes_aprobadas)
         
         # Calcular días disponibles según antigüedad
-        antiguedad = hoy - empleado.fecha_contratacion
-        dias_por_antiguedad = 20  # Base
-        
-        if antiguedad.days >= 1825:  # Más de 5 años
-            dias_por_antiguedad = 35
-        elif antiguedad.days >= 730:  # Más de 2 años
-            dias_por_antiguedad = 30
-        elif antiguedad.days >= 365:  # Más de 1 año
-            dias_por_antiguedad = 25
+        if empleado.fecha_contratacion:
+            antiguedad = hoy - empleado.fecha_contratacion
+            dias_por_antiguedad = 20  # Base
+            
+            if antiguedad.days >= 1825:  # Más de 5 años
+                dias_por_antiguedad = 35
+            elif antiguedad.days >= 730:  # Más de 2 años
+                dias_por_antiguedad = 30
+            elif antiguedad.days >= 365:  # Más de 1 año
+                dias_por_antiguedad = 25
+        else:
+            # Si no tiene fecha de contratación, asumir días base
+            antiguedad = None
+            dias_por_antiguedad = 20
         
         # Días restantes del período actual
         dias_restantes_periodo = max(0, dias_por_antiguedad - dias_tomados_periodo)
@@ -282,7 +287,7 @@ def inicio_empleado(request):
             'fecha_limite': fecha_limite,
             'politicas_info': politicas_info,
             'dias_tomados_periodo': dias_tomados_periodo,
-            'antiguedad_dias': antiguedad.days,
+            'antiguedad_dias': antiguedad.days if antiguedad else 0,
             'solicitudes_pendientes_empleado': solicitudes_pendientes_empleado.count(),
             'user': request.user
         }
@@ -396,15 +401,20 @@ def nueva_solicitud_vacaciones(request):
     dias_tomados_total = sum(s.dias_solicitados for s in solicitudes_aprobadas)
     
     # Calcular días disponibles según antigüedad
-    antiguedad = hoy - empleado.fecha_contratacion
-    dias_por_antiguedad = 20  # Base
-    
-    if antiguedad.days >= 1825:  # Más de 5 años
-        dias_por_antiguedad = 35
-    elif antiguedad.days >= 730:  # Más de 2 años
-        dias_por_antiguedad = 30
-    elif antiguedad.days >= 365:  # Más de 1 año
-        dias_por_antiguedad = 25
+    if empleado.fecha_contratacion:
+        antiguedad = hoy - empleado.fecha_contratacion
+        dias_por_antiguedad = 20  # Base
+        
+        if antiguedad.days >= 1825:  # Más de 5 años
+            dias_por_antiguedad = 35
+        elif antiguedad.days >= 730:  # Más de 2 años
+            dias_por_antiguedad = 30
+        elif antiguedad.days >= 365:  # Más de 1 año
+            dias_por_antiguedad = 25
+    else:
+        # Si no tiene fecha de contratación, asumir días base
+        antiguedad = None
+        dias_por_antiguedad = 20
     
     # Días restantes del período actual
     dias_restantes_periodo = max(0, dias_por_antiguedad - dias_tomados_periodo)
@@ -460,7 +470,7 @@ def nueva_solicitud_vacaciones(request):
                     'fecha_limite': fecha_limite,
                     'politicas_info': politicas_info,
                     'dias_tomados_periodo': dias_tomados_periodo,
-                    'antiguedad_dias': antiguedad.days
+                    'antiguedad_dias': antiguedad.days if antiguedad else 0
                 })
             
             # Validar que la fecha de fin no sea anterior a la de inicio
@@ -475,7 +485,7 @@ def nueva_solicitud_vacaciones(request):
                     'fecha_limite': fecha_limite,
                     'politicas_info': politicas_info,
                     'dias_tomados_periodo': dias_tomados_periodo,
-                    'antiguedad_dias': antiguedad.days
+                    'antiguedad_dias': antiguedad.days if antiguedad else 0
                 })
             
             # Calcular días solicitados
@@ -498,7 +508,7 @@ def nueva_solicitud_vacaciones(request):
                     'fecha_limite': fecha_limite,
                     'politicas_info': politicas_info,
                     'dias_tomados_periodo': dias_tomados_periodo,
-                    'antiguedad_dias': antiguedad.days
+                    'antiguedad_dias': antiguedad.days if antiguedad else 0
                 })
             
             # Calcular automáticamente el tipo de vacaciones si no se especificó
@@ -523,7 +533,7 @@ def nueva_solicitud_vacaciones(request):
                     'fecha_limite': fecha_limite,
                     'politicas_info': politicas_info,
                     'dias_tomados_periodo': dias_tomados_periodo,
-                    'antiguedad_dias': antiguedad.days
+                    'antiguedad_dias': antiguedad.days if antiguedad else 0
                 })
             
             solicitud.save()
@@ -559,7 +569,7 @@ def nueva_solicitud_vacaciones(request):
         'fecha_limite': fecha_limite,
         'politicas_info': politicas_info,
         'dias_tomados_periodo': dias_tomados_periodo,
-        'antiguedad_dias': antiguedad.days,
+        'antiguedad_dias': antiguedad.days if antiguedad else 0,
         'user': request.user
     }
     
@@ -1214,15 +1224,20 @@ def rrhh_control_vacaciones(request):
         # Calcular días disponibles según antigüedad
         from datetime import date
         hoy = date.today()
-        antiguedad = hoy - emp.fecha_contratacion
-        dias_por_antiguedad = 20  # Base
-        
-        if antiguedad.days >= 365:  # Más de 1 año
-            dias_por_antiguedad = 25
-        if antiguedad.days >= 730:  # Más de 2 años
-            dias_por_antiguedad = 30
-        if antiguedad.days >= 1825:  # Más de 5 años
-            dias_por_antiguedad = 35
+        if emp.fecha_contratacion:
+            antiguedad = hoy - emp.fecha_contratacion
+            dias_por_antiguedad = 20  # Base
+            
+            if antiguedad.days >= 365:  # Más de 1 año
+                dias_por_antiguedad = 25
+            if antiguedad.days >= 730:  # Más de 2 años
+                dias_por_antiguedad = 30
+            if antiguedad.days >= 1825:  # Más de 5 años
+                dias_por_antiguedad = 35
+        else:
+            # Si no tiene fecha de contratación, asumir días base
+            antiguedad = None
+            dias_por_antiguedad = 20
         
         # Días restantes
         dias_restantes = max(0, dias_por_antiguedad - dias_tomados)
@@ -1235,9 +1250,9 @@ def rrhh_control_vacaciones(request):
             alertas.append(f"⚠️ Solo {dias_restantes} días restantes")
         
         # Alerta por próximo período vacacional
-        if antiguedad.days >= 365 and antiguedad.days < 395:  # Próximo a cumplir 1 año
+        if antiguedad and antiguedad.days >= 365 and antiguedad.days < 395:  # Próximo a cumplir 1 año
             alertas.append("🔄 Próximo a cumplir 1 año (nuevo período)")
-        elif antiguedad.days >= 730 and antiguedad.days < 760:  # Próximo a cumplir 2 años
+        elif antiguedad and antiguedad.days >= 730 and antiguedad.days < 760:  # Próximo a cumplir 2 años
             alertas.append("🔄 Próximo a cumplir 2 años (nuevo período)")
         
         # Alerta por solicitudes pendientes
@@ -1260,7 +1275,7 @@ def rrhh_control_vacaciones(request):
             'dias_por_antiguedad': dias_por_antiguedad,
             'solicitudes_pendientes': solicitudes_pendientes.count(),
             'dias_pendientes': sum(s.dias_solicitados for s in solicitudes_pendientes),
-            'antiguedad_dias': antiguedad.days,
+            'antiguedad_dias': antiguedad.days if antiguedad else 0,
             'alertas': alertas,
             'ultima_solicitud': solicitudes.order_by('-fecha_solicitud').first()
         })

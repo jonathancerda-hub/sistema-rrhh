@@ -507,7 +507,7 @@
                             {% if empleado.es_rrhh %}
                                 <span style="color: #2196f3; font-weight: bold;">👥 Recursos Humanos</span>
                             {% else %}
-                                {{ empleado.get_area_display|default:"No asignado" }}
+                                {{ empleado.area|default:"No especificada" }}
                             {% endif %}
                         </div>
                     </div>
