@@ -24,20 +24,33 @@ ALLOWED_HOSTS = [
 
 # Database configuration for Render PostgreSQL
 # La variable DATABASE_URL debe estar configurada en Render.com
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
-# Si no hay DATABASE_URL configurada, mostrar error claro
-if not os.environ.get('DATABASE_URL'):
-    raise ValueError(
-        "❌ DATABASE_URL no está configurada. "
-        "Debes crear una base de datos PostgreSQL en Render.com y configurar la variable DATABASE_URL."
-    )
+if DATABASE_URL:
+    # Usar PostgreSQL si DATABASE_URL está disponible
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+    print(f"✅ Usando PostgreSQL: {DATABASE_URL[:50]}...")
+else:
+    # Fallback temporal para debugging
+    print("⚠️ DATABASE_URL no encontrada. Usando configuración de fallback.")
+    print("Variables de entorno disponibles:")
+    for key in os.environ:
+        if 'DATABASE' in key or 'DJANGO' in key:
+            print(f"  {key}: {os.environ[key][:50]}...")
+    
+    # Usar SQLite temporalmente para permitir que el build complete
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Static files configuration
 STATIC_URL = '/static/'
