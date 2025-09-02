@@ -3,6 +3,7 @@ from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.models import User
 from empleados.models import Empleado
 from django.views.decorators.csrf import csrf_exempt
+from datetime import date
 
 @csrf_exempt
 def setup_simple(request):
@@ -31,9 +32,10 @@ def setup_simple(request):
                     'dni': '12345678',
                     'email': 'rrhh@empresa.com',
                     'puesto': 'Recursos Humanos',
+                    'fecha_contratacion': date.today(),  # ✅ Campo obligatorio agregado
                     'area': 'RRHH',
-                    'gerencia': 'RRHH',
-                    'jerarquia': 1,
+                    'gerencia': 'gerencia_desarrollo_organizacional',
+                    'jerarquia': 'director',
                     'es_rrhh': True,
                     'dias_vacaciones_disponibles': 30
                 }

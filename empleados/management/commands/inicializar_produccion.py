@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from empleados.models import Empleado
+from datetime import date
 
 class Command(BaseCommand):
     help = 'Inicializar base de datos con usuarios básicos para producción'
@@ -23,9 +24,10 @@ class Command(BaseCommand):
                 dni='12345678',
                 email='rrhh@empresa.com',
                 puesto='Recursos Humanos',
+                fecha_contratacion=date.today(),
                 area='RRHH',
-                gerencia='RRHH',
-                jerarquia=1,
+                gerencia='gerencia_desarrollo_organizacional',
+                jerarquia='director',
                 es_rrhh=True,
                 dias_vacaciones_disponibles=30
             )
@@ -39,9 +41,10 @@ class Command(BaseCommand):
                 dni='87654321',
                 email='manager@empresa.com',
                 puesto='Gerente',
+                fecha_contratacion=date.today(),
                 area='Ventas',
-                gerencia='Comercial',
-                jerarquia=2,
+                gerencia='gerencia_comercial_local',
+                jerarquia='gerente',
                 dias_vacaciones_disponibles=30
             )
 
@@ -54,9 +57,10 @@ class Command(BaseCommand):
                 dni='11223344',
                 email='empleado@empresa.com',
                 puesto='Analista',
+                fecha_contratacion=date.today(),
                 area='Ventas',
-                gerencia='Comercial',
-                jerarquia=7,
+                gerencia='gerencia_comercial_local',
+                jerarquia='asistente',
                 manager=empleado_manager,
                 dias_vacaciones_disponibles=30
             )

@@ -2,6 +2,7 @@ from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.models import User
 from empleados.models import Empleado
 from django.views.decorators.csrf import csrf_exempt
+from datetime import date
 import json
 
 def inicializar_datos_produccion(request):
@@ -134,9 +135,10 @@ def inicializar_datos_produccion(request):
                     'dni': '12345678',
                     'email': 'rrhh@empresa.com',
                     'puesto': 'Recursos Humanos',
+                    'fecha_contratacion': date.today(),
                     'area': 'RRHH',
-                    'gerencia': 'RRHH',
-                    'jerarquia': 1,
+                    'gerencia': 'gerencia_desarrollo_organizacional',
+                    'jerarquia': 'director',
                     'es_rrhh': True,
                     'dias_vacaciones_disponibles': 30
                 }
@@ -162,9 +164,10 @@ def inicializar_datos_produccion(request):
                     'dni': '87654321',
                     'email': 'manager@empresa.com',
                     'puesto': 'Gerente',
+                    'fecha_contratacion': date.today(),
                     'area': 'Ventas',
-                    'gerencia': 'Comercial',
-                    'jerarquia': 2,
+                    'gerencia': 'gerencia_comercial_local',
+                    'jerarquia': 'gerente',
                     'dias_vacaciones_disponibles': 30
                 }
             )
@@ -189,9 +192,10 @@ def inicializar_datos_produccion(request):
                     'dni': '11223344',
                     'email': 'empleado@empresa.com',
                     'puesto': 'Analista',
+                    'fecha_contratacion': date.today(),
                     'area': 'Ventas',
-                    'gerencia': 'Comercial',
-                    'jerarquia': 7,
+                    'gerencia': 'gerencia_comercial_local',
+                    'jerarquia': 'asistente',
                     'manager': empleado_manager,
                     'dias_vacaciones_disponibles': 30
                 }
