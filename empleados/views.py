@@ -11,8 +11,22 @@ from django.db import models, transaction
 from datetime import datetime, date, timedelta
 import secrets
 import string
+import pytz
 from .models import Empleado, SolicitudVacaciones, SolicitudNuevoColaborador
 from .forms import SolicitudVacacionesForm, SolicitudNuevoColaboradorForm
+
+def obtener_fecha_lima():
+    """
+    Obtiene la fecha actual en zona horaria de Lima, Perú
+    """
+    lima_tz = pytz.timezone('America/Lima')
+    return timezone.now().astimezone(lima_tz)
+
+def obtener_solo_fecha_lima():
+    """
+    Obtiene solo la fecha (sin hora) en zona horaria de Lima, Perú
+    """
+    return obtener_fecha_lima().date()
 
 def generar_password_temporal():
     """

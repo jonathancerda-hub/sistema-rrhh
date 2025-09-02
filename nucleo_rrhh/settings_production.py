@@ -5,6 +5,12 @@ from .settings import *
 # Temporary debug for deployment issues
 DEBUG = True  # Cambiar a False después de verificar que funciona
 
+# Configuración de zona horaria para Perú
+LANGUAGE_CODE = 'es-pe'
+TIME_ZONE = 'America/Lima'
+USE_I18N = True
+USE_TZ = True
+
 # Override settings for production
 
 # Render provides the hostname

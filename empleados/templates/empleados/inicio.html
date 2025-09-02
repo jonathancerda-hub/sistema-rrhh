@@ -1,3 +1,4 @@
+{% load fecha_filters %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -456,7 +457,7 @@
                     <div class="employee-detail-label">Email Corporativo</div>
                 </div>
                 <div class="employee-detail-item">
-                    <div class="employee-detail-value">{{ empleado.fecha_contratacion|date:"d/m/Y" }}</div>
+                    <div class="employee-detail-value">{{ empleado.fecha_contratacion|fecha_corta_peru }}</div>
                     <div class="employee-detail-label">Fecha de Ingreso</div>
                 </div>
                 <div class="employee-detail-item">

@@ -103,13 +103,25 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es-pe'  # Español de Perú
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Lima'  # Zona horaria de Perú
 
 USE_I18N = True
 
 USE_TZ = True
+
+# Formato de fecha y hora en español
+DATE_FORMAT = 'd/m/Y'
+DATETIME_FORMAT = 'd/m/Y H:i'
+SHORT_DATE_FORMAT = 'd/m/Y'
+SHORT_DATETIME_FORMAT = 'd/m/Y H:i'
+
+# Configuración de localización
+USE_L10N = True
+USE_THOUSAND_SEPARATOR = True
+THOUSAND_SEPARATOR = ','
+DECIMAL_SEPARATOR = '.'
 
 
 # Static files (CSS, JavaScript, Images)
