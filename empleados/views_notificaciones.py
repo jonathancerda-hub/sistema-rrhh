@@ -6,7 +6,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import Empleado
+from django.utils import timezone
+from datetime import timedelta
+from .models import Empleado, SolicitudVacaciones
 
 
 @login_required
@@ -67,8 +69,10 @@ def configurar_notificaciones(request):
         # Personal de RRHH
         personal_rrhh = Empleado.objects.filter(es_rrhh=True)
         
-        # Managers con equipo
-        managers = Empleado.objects.filter(es_manager=True)
+        # Managers y jefes con capacidad de gestión de equipos
+        managers = Empleado.objects.filter(
+            jerarquia__in=['director', 'gerente', 'sub_gerente', 'jefe']
+        )
         
         contexto = {
             'empleado': empleado,

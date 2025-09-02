@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Empleados - RRHH</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .employee-table {
+            font-size: 0.9rem;
+        }
+        .filter-section {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .employee-row:hover {
+            background-color: #f8f9fa;
+        }
+        .status-badge {
+            font-size: 0.8rem;
+        }
+        .actions-column {
+            min-width: 120px;
+        }
+        .employee-photo {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <!-- Header -->
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2><i class="fas fa-users text-primary"></i> Gestión de Empleados - RRHH</h2>
+                        <p class="text-muted">Administración completa de empleados</p>
+                    </div>
+                    <div>
+                        <a href="{% url 'rrhh_dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver al Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filter-section">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label for="search" class="form-label">Buscar</label>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           value="{{ search_query }}" placeholder="Nombre, DNI, email...">
+                </div>
+                <div class="col-md-2">
+                    <label for="area" class="form-label">Área</label>
+                    <input type="text" class="form-control" id="area" name="area" 
+                           value="{{ area_filter }}" placeholder="Área">
+                </div>
+                <div class="col-md-2">
+                    <label for="gerencia" class="form-label">Gerencia</label>
+                    <select class="form-select" id="gerencia" name="gerencia">
+                        <option value="">Todas</option>
+                        {% for gerencia in gerencias_disponibles %}
+                            <option value="{{ gerencia }}" {% if gerencia == gerencia_filter %}selected{% endif %}>
+                                {{ gerencia|title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="jerarquia" class="form-label">Jerarquía</label>
+                    <select class="form-select" id="jerarquia" name="jerarquia">
+                        <option value="">Todas</option>
+                        {% for jerarquia in jerarquias_disponibles %}
+                            <option value="{{ jerarquia }}" {% if jerarquia == jerarquia_filter %}selected{% endif %}>
+                                {{ jerarquia|title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select class="form-select" id="estado" name="estado">
+                        <option value="">Todos</option>
+                        <option value="activo" {% if estado_filter == 'activo' %}selected{% endif %}>Activo</option>
+                        <option value="inactivo" {% if estado_filter == 'inactivo' %}selected{% endif %}>Inactivo</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label">&nbsp;</label>
+                    <div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <a href="{% url 'rrhh_lista_empleados' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4>{{ total_empleados }}</h4>
+                                <p class="mb-0">Total Empleados</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-users fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de empleados -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-table"></i> Lista de Empleados</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if empleados %}
+                    <div class="table-responsive">
+                        <table class="table table-hover employee-table mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Foto</th>
+                                    <th>Nombre</th>
+                                    <th>DNI</th>
+                                    <th>Email</th>
+                                    <th>Puesto</th>
+                                    <th>Área</th>
+                                    <th>Gerencia</th>
+                                    <th>Jerarquía</th>
+                                    <th>Manager</th>
+                                    <th>Vacaciones</th>
+                                    <th>Estado</th>
+                                    <th>Roles</th>
+                                    <th class="actions-column">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for empleado in empleados %}
+                                    <tr class="employee-row">
+                                        <td>
+                                            {% if empleado.foto_perfil %}
+                                                <img src="{{ empleado.foto_perfil.url }}" alt="Foto" class="employee-photo">
+                                            {% else %}
+                                                <div class="employee-photo bg-secondary d-flex align-items-center justify-content-center text-white">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <strong>{{ empleado.nombre }} {{ empleado.apellido }}</strong>
+                                            <br>
+                                            <small class="text-muted">ID: {{ empleado.id }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark">{{ empleado.dni }}</span>
+                                        </td>
+                                        <td>{{ empleado.email }}</td>
+                                        <td>{{ empleado.puesto }}</td>
+                                        <td>{{ empleado.area|default:"-" }}</td>
+                                        <td>{{ empleado.get_gerencia_display|default:"-" }}</td>
+                                        <td>{{ empleado.get_jerarquia_display|default:"-" }}</td>
+                                        <td>
+                                            {% if empleado.manager %}
+                                                {{ empleado.manager.nombre }} {{ empleado.manager.apellido }}
+                                            {% else %}
+                                                <span class="text-muted">Sin manager</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ empleado.dias_vacaciones_disponibles }} días</span>
+                                        </td>
+                                        <td>
+                                            {% if empleado.user.is_active %}
+                                                <span class="badge bg-success status-badge">Activo</span>
+                                            {% else %}
+                                                <span class="badge bg-danger status-badge">Inactivo</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="d-flex flex-column gap-1">
+                                                {% if empleado.es_rrhh %}
+                                                    <span class="badge bg-warning status-badge">RRHH</span>
+                                                {% endif %}
+                                                {% if empleado.puede_gestionar_equipo %}
+                                                    <span class="badge bg-primary status-badge">Gestión</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td class="actions-column">
+                                            <div class="btn-group-vertical btn-group-sm" role="group">
+                                                <a href="{% url 'rrhh_editar_empleado' empleado.id %}" 
+                                                   class="btn btn-outline-primary btn-sm" title="Editar empleado">
+                                                    <i class="fas fa-edit"></i> Editar
+                                                </a>
+                                                {% if empleado.user.is_active %}
+                                                    <a href="{% url 'rrhh_offboarding_empleado' empleado.id %}" 
+                                                       class="btn btn-outline-danger btn-sm" title="Offboarding">
+                                                        <i class="fas fa-user-times"></i> Baja
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No se encontraron empleados</h5>
+                        <p class="text-muted">No hay empleados que coincidan con los criterios de búsqueda.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -59,7 +59,6 @@ class Command(BaseCommand):
                 'jerarquia': 'jefe',
                 'fecha_contratacion': date(2021, 11, 10),
                 'password': 'empleado123',
-                'es_manager': True,  # Carlos será manager
                 'es_rrhh': False
             },
             {
@@ -72,7 +71,6 @@ class Command(BaseCommand):
                 'jerarquia': 'coordinador',
                 'fecha_contratacion': date(2022, 1, 15),
                 'password': 'empleado123',
-                'es_manager': False,
                 'es_rrhh': False
             },
             {
@@ -85,7 +83,6 @@ class Command(BaseCommand):
                 'jerarquia': 'asistente',
                 'fecha_contratacion': date(2022, 3, 20),
                 'password': 'empleado123',
-                'es_manager': False,
                 'es_rrhh': False
             },
             {
@@ -98,7 +95,6 @@ class Command(BaseCommand):
                 'jerarquia': 'auxiliar',
                 'fecha_contratacion': date(2023, 2, 8),
                 'password': 'empleado123',
-                'es_manager': False,
                 'es_rrhh': False
             },
             {
@@ -111,7 +107,6 @@ class Command(BaseCommand):
                 'jerarquia': 'supervisor',
                 'fecha_contratacion': date(2022, 6, 12),
                 'password': 'empleado123',
-                'es_manager': False,
                 'es_rrhh': False
             },
             {
@@ -124,7 +119,6 @@ class Command(BaseCommand):
                 'jerarquia': 'director',
                 'fecha_contratacion': date(2020, 5, 15),
                 'password': 'rrhh123',
-                'es_manager': False,
                 'es_rrhh': True  # Usuario RRHH independiente
             }
         ]
@@ -168,7 +162,8 @@ class Command(BaseCommand):
                 )
                 
                 # Si es manager, guardarlo para asignar empleados después
-                if data.get('es_manager'):
+                # Identificar si este empleado puede ser manager por su jerarquía
+                if empleado.jerarquia in ['director', 'gerente', 'sub_gerente', 'jefe']:
                     manager = empleado
                 
                 empleados_creados += 1
@@ -177,9 +172,9 @@ class Command(BaseCommand):
                 )
             else:
                 print(f"ℹ️  El empleado {data['email']} ya existe")
-                # Si ya existe, verificar si es manager
+                # Si ya existe, verificar si puede ser manager
                 empleado_existente = Empleado.objects.get(email=data['email'])
-                if data.get('es_manager'):
+                if empleado_existente.jerarquia in ['director', 'gerente', 'sub_gerente', 'jefe']:
                     manager = empleado_existente
         
         # Asignar empleados al manager (EXCLUYENDO al usuario RRHH)
@@ -274,10 +269,10 @@ class Command(BaseCommand):
                     self.stdout.write(f'     Puesto: {empleado.puesto}')
                     self.stdout.write(f'     🔴 USUARIO DE RRHH - ACCESO TOTAL')
                     self.stdout.write(f'     🌐 Dashboard RRHH: http://127.0.0.1:8000/rrhh/')
-                elif empleado.es_manager:
+                elif empleado.puede_gestionar_equipo:
                     self.stdout.write(f'     Contraseña: empleado123')
                     self.stdout.write(f'     Puesto: {empleado.puesto}')
-                    self.stdout.write(f'     🔵 MANAGER')
+                    self.stdout.write(f'     🔵 GESTIÓN DE EQUIPO ({empleado.get_jerarquia_display()})')
                 else:
                     self.stdout.write(f'     Contraseña: empleado123')
                     self.stdout.write(f'     Puesto: {empleado.puesto}')

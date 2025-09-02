@@ -1,6 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
+from django.core.exceptions import ValidationError
+
+def validar_dni(value):
+    """Validador personalizado para DNI peruano"""
+    if not value.isdigit():
+        raise ValidationError('El DNI debe contener solo números.')
+    if len(value) != 8:
+        raise ValidationError('El DNI debe tener exactamente 8 dígitos.')
+    return value
 
 class Empleado(models.Model):
     JERARQUIA_CHOICES = [
@@ -26,6 +35,13 @@ class Empleado(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='empleado', null=True)
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
+    dni = models.CharField(
+        max_length=8, 
+        unique=True,
+        validators=[validar_dni],
+        help_text='Documento Nacional de Identidad (8 dígitos)',
+        verbose_name='DNI'
+    )
     email = models.EmailField(unique=True)
     puesto = models.CharField(max_length=100)
     fecha_contratacion = models.DateField()
@@ -92,6 +108,16 @@ class Empleado(models.Model):
         # Solo directores, gerentes, sub gerentes y jefes pueden solicitar nuevos empleados
         jerarquias_autorizadas = ['director', 'gerente', 'sub_gerente', 'jefe']
         return self.jerarquia in jerarquias_autorizadas or self.es_manager or self.es_rrhh
+
+    @property
+    def puede_gestionar_equipo(self):
+        """
+        Determina si este empleado puede gestionar equipos (ver equipos, aprobar solicitudes).
+        Incluye managers reales y jefes por jerarquía.
+        """
+        # Jerarquías que pueden gestionar equipos
+        jerarquias_gestoras = ['director', 'gerente', 'sub_gerente', 'jefe']
+        return self.es_manager or self.jerarquia in jerarquias_gestoras or self.es_rrhh
 
 class SolicitudVacaciones(models.Model):
     ESTADOS_CHOICES = [
@@ -273,6 +299,15 @@ class SolicitudNuevoColaborador(models.Model):
         ('coordinador', 'Coordinador'),
     ]
 
+    MOTIVO_CONTRATACION_CHOICES = [
+        ('nuevo_puesto', 'Nuevo puesto de trabajo'),
+        ('reemplazo_promocion', 'Reemplazo por promoción'),
+        ('reemplazo_renuncia', 'Reemplazo por renuncia'),
+        ('reemplazo_vencimiento', 'Reemplazo por vencimiento de contrato'),
+        ('fallecimiento', 'Fallecimiento'),
+        ('otros', 'Otros'),
+    ]
+
     # Quién solicita
     solicitante = models.ForeignKey(
         Empleado, on_delete=models.CASCADE, related_name='solicitudes_nuevo_colaborador'
@@ -282,11 +317,35 @@ class SolicitudNuevoColaborador(models.Model):
     area_solicitante = models.CharField(max_length=120)
     fecha_solicitud = models.DateField(auto_now_add=True)
     persona_responsable = models.CharField(max_length=120)
+    dni_colaborador = models.CharField(
+        max_length=8,
+        validators=[validar_dni],
+        help_text='DNI del nuevo colaborador (8 dígitos)',
+        verbose_name='DNI del Colaborador'
+    )
+    nombre_colaborador = models.CharField(
+        max_length=100,
+        verbose_name='Nombre del Colaborador',
+        help_text='Nombre completo del nuevo colaborador'
+    )
+    apellido_colaborador = models.CharField(
+        max_length=100,
+        verbose_name='Apellido del Colaborador',
+        help_text='Apellidos del nuevo colaborador'
+    )
+    email_colaborador = models.EmailField(
+        verbose_name='Email del Colaborador',
+        help_text='Correo electrónico del nuevo colaborador'
+    )
     fecha_inicio_labores = models.DateField()
     grupo_ocupacional = models.CharField(max_length=20, choices=GRUPO_OCUPACIONAL_CHOICES)
     puesto_a_solicitud = models.CharField(max_length=120)
     denominacion_puesto = models.CharField(max_length=20, choices=DENOMINACION_PUESTO_CHOICES)
-    motivo_contratacion = models.TextField(max_length=800)
+    motivo_contratacion = models.CharField(
+        max_length=30, 
+        choices=MOTIVO_CONTRATACION_CHOICES,
+        help_text='Seleccione el motivo de la contratación'
+    )
     modalidad_contratacion = models.CharField(max_length=120)
     tiempo_meses = models.PositiveIntegerField(validators=[MinValueValidator(1)], help_text='Especificar tiempo (meses)')
 

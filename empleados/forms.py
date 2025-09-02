@@ -106,22 +106,46 @@ class SolicitudNuevoColaboradorForm(forms.ModelForm):
     class Meta:
         model = SolicitudNuevoColaborador
         fields = [
-            'area_solicitante', 'persona_responsable', 'fecha_inicio_labores',
+            'area_solicitante', 'persona_responsable', 'dni_colaborador', 'nombre_colaborador',
+            'apellido_colaborador', 'email_colaborador', 'fecha_inicio_labores',
             'grupo_ocupacional', 'puesto_a_solicitud', 'denominacion_puesto',
             'motivo_contratacion', 'modalidad_contratacion', 'tiempo_meses'
         ]
         widgets = {
             'area_solicitante': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'dni_colaborador': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '12345678',
+                'maxlength': '8',
+                'pattern': '[0-9]{8}',
+                'title': 'Ingrese exactamente 8 dígitos'
+            }),
+            'nombre_colaborador': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ingrese el nombre completo'
+            }),
+            'apellido_colaborador': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ingrese los apellidos'
+            }),
+            'email_colaborador': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'usuario@empresa.com'
+            }),
             'fecha_inicio_labores': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'grupo_ocupacional': forms.Select(attrs={'class': 'form-select'}),
             'puesto_a_solicitud': forms.TextInput(attrs={'class': 'form-control'}),
             'denominacion_puesto': forms.Select(attrs={'class': 'form-select'}),
-            'motivo_contratacion': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'motivo_contratacion': forms.Select(attrs={'class': 'form-select'}),
             'modalidad_contratacion': forms.TextInput(attrs={'class': 'form-control'}),
             'tiempo_meses': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
         }
         labels = {
             'area_solicitante': 'Área Solicitante',
+            'dni_colaborador': 'DNI del Colaborador',
+            'nombre_colaborador': 'Nombre del Colaborador',
+            'apellido_colaborador': 'Apellido del Colaborador',
+            'email_colaborador': 'Email del Colaborador',
             'fecha_inicio_labores': 'Fecha de inicio de labores',
             'grupo_ocupacional': 'Grupo Ocupacional',
             'puesto_a_solicitud': 'Puesto a Solicitud',
@@ -167,7 +191,7 @@ class EmpleadoPerfilForm(forms.ModelForm):
     """
     class Meta:
         model = Empleado
-        fields = ['nombre', 'apellido', 'email', 'foto_perfil']
+        fields = ['nombre', 'apellido', 'dni', 'email', 'foto_perfil']
         widgets = {
             'nombre': forms.TextInput(
                 attrs={
@@ -179,6 +203,15 @@ class EmpleadoPerfilForm(forms.ModelForm):
                 attrs={
                     'class': 'form-control',
                     'placeholder': 'Ingresa tu apellido'
+                }
+            ),
+            'dni': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': '12345678',
+                    'maxlength': '8',
+                    'pattern': '[0-9]{8}',
+                    'title': 'Ingrese exactamente 8 dígitos'
                 }
             ),
             'email': forms.EmailInput(
@@ -198,10 +231,12 @@ class EmpleadoPerfilForm(forms.ModelForm):
         labels = {
             'nombre': 'Nombre',
             'apellido': 'Apellido',
+            'dni': 'DNI',
             'email': 'Correo Electrónico',
             'foto_perfil': 'Foto de Perfil'
         }
         help_texts = {
+            'dni': 'Documento Nacional de Identidad (8 dígitos)',
             'foto_perfil': 'Sube una imagen para tu perfil (JPG, PNG, máximo 5MB)',
             'email': 'Este email se usará para notificaciones importantes'
         }

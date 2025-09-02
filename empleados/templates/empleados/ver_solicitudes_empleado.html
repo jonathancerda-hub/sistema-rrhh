@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitudes de {{ empleado.nombre }} {{ empleado.apellido }} - Sistema RRHH</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .employee-info {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .employee-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .employee-details h2 {
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+        }
+
+        .employee-details p {
+            color: #718096;
+            margin: 0;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .section-body {
+            padding: 1.5rem;
+        }
+
+        .requests-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .requests-table th,
+        .requests-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .requests-table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .requests-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-pendiente {
+            background: #fef5e7;
+            color: #744210;
+        }
+
+        .status-aprobado {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-rechazado {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .status-cancelado {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .no-requests {
+            text-align: center;
+            padding: 3rem;
+            color: #718096;
+        }
+
+        .no-requests i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .btn-detail {
+            background: #3182ce;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: background 0.3s ease;
+        }
+
+        .btn-detail:hover {
+            background: #2c5aa0;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .container {
+                margin: 1rem auto;
+            }
+
+            .employee-info {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .requests-table {
+                font-size: 0.8rem;
+            }
+
+            .requests-table th,
+            .requests-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-file-alt"></i> Solicitudes del Empleado</h1>
+        <div class="nav-buttons">
+            <a href="{% url 'equipo_manager' %}" class="btn btn-back">
+                <i class="fas fa-arrow-left"></i> Volver al Equipo
+            </a>
+            <a href="{% url 'logout_empleado' %}" class="btn btn-danger">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Información del Empleado -->
+        <div class="employee-info">
+            <div class="employee-avatar">
+                {{ empleado.nombre.0 }}{{ empleado.apellido.0 }}
+            </div>
+            <div class="employee-details">
+                <h2>{{ empleado.nombre }} {{ empleado.apellido }}</h2>
+                <p>{{ empleado.puesto }} | {{ empleado.get_jerarquia_display }}</p>
+            </div>
+        </div>
+
+        <!-- Solicitudes de Vacaciones -->
+        <div class="section">
+            <div class="section-header">
+                <i class="fas fa-calendar-alt"></i>
+                <h3>Solicitudes de Vacaciones</h3>
+            </div>
+            <div class="section-body">
+                {% if solicitudes_vacaciones %}
+                    <table class="requests-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha Solicitud</th>
+                                <th>Período</th>
+                                <th>Días</th>
+                                <th>Estado</th>
+                                <th>Procesada por</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for solicitud in solicitudes_vacaciones %}
+                            <tr>
+                                <td>{{ solicitud.fecha_solicitud|date:"d/m/Y" }}</td>
+                                <td>
+                                    {{ solicitud.fecha_inicio|date:"d/m/Y" }} - 
+                                    {{ solicitud.fecha_fin|date:"d/m/Y" }}
+                                </td>
+                                <td>{{ solicitud.dias_solicitados }} días</td>
+                                <td>
+                                    <span class="status-badge status-{{ solicitud.estado }}">
+                                        {{ solicitud.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if solicitud.procesada_por %}
+                                        {{ solicitud.procesada_por.nombre }} {{ solicitud.procesada_por.apellido }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'detalle_solicitud_empleado' empleado.id solicitud.id %}" class="btn-detail">
+                                        <i class="fas fa-eye"></i> Ver Detalle
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="no-requests">
+                        <i class="fas fa-calendar-times"></i>
+                        <p>No hay solicitudes de vacaciones registradas.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Solicitudes de Nuevo Colaborador -->
+        <div class="section">
+            <div class="section-header">
+                <i class="fas fa-user-plus"></i>
+                <h3>Solicitudes de Nuevo Colaborador</h3>
+            </div>
+            <div class="section-body">
+                {% if solicitudes_colaborador %}
+                    <table class="requests-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha Solicitud</th>
+                                <th>Puesto Solicitado</th>
+                                <th>Área</th>
+                                <th>Estado</th>
+                                <th>Procesada por</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for solicitud in solicitudes_colaborador %}
+                            <tr>
+                                <td>{{ solicitud.fecha_solicitud|date:"d/m/Y" }}</td>
+                                <td>{{ solicitud.puesto_solicitado }}</td>
+                                <td>{{ solicitud.get_area_display|default:"No especificada" }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ solicitud.estado }}">
+                                        {{ solicitud.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if solicitud.procesada_por %}
+                                        {{ solicitud.procesada_por.nombre }} {{ solicitud.procesada_por.apellido }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="no-requests">
+                        <i class="fas fa-user-times"></i>
+                        <p>No hay solicitudes de nuevo colaborador registradas.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

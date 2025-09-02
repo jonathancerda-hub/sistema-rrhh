@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de {{ empleado.nombre }} {{ empleado.apellido }} - Sistema RRHH</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin: 0 auto 1rem;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .profile-name {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-position {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .profile-body {
+            padding: 2rem;
+        }
+
+        .info-section {
+            margin-bottom: 2rem;
+        }
+
+        .info-section h3 {
+            color: #2d3748;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-item {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            color: #2d3748;
+            font-size: 1rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-inactive {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .status-rrhh {
+            background: #fef5e7;
+            color: #744210;
+        }
+
+        .status-manager {
+            background: #bee3f8;
+            color: #1a365d;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .container {
+                margin: 1rem auto;
+            }
+
+            .profile-header {
+                padding: 1.5rem;
+            }
+
+            .profile-avatar {
+                width: 80px;
+                height: 80px;
+                font-size: 2rem;
+            }
+
+            .profile-name {
+                font-size: 1.5rem;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-user"></i> Perfil del Empleado</h1>
+        <div class="nav-buttons">
+            <a href="{% url 'equipo_manager' %}" class="btn btn-back">
+                <i class="fas fa-arrow-left"></i> Volver al Equipo
+            </a>
+            <a href="{% url 'logout_empleado' %}" class="btn btn-danger">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    {{ empleado.nombre.0 }}{{ empleado.apellido.0 }}
+                </div>
+                <div class="profile-name">{{ empleado.nombre }} {{ empleado.apellido }}</div>
+                <div class="profile-position">{{ empleado.puesto }} | {{ empleado.get_jerarquia_display }}</div>
+            </div>
+
+            <div class="profile-body">
+                <!-- Información Personal -->
+                <div class="info-section">
+                    <h3><i class="fas fa-user"></i> Información Personal</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">DNI</div>
+                            <div class="info-value">{{ empleado.dni|default:"No especificado" }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Email</div>
+                            <div class="info-value">{{ empleado.email }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Fecha de Contratación</div>
+                            <div class="info-value">{{ empleado.fecha_contratacion|date:"d/m/Y" }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Estado de Usuario</div>
+                            <div class="info-value">
+                                {% if empleado.user and empleado.user.is_active %}
+                                    <span class="status-badge status-active">Activo</span>
+                                {% else %}
+                                    <span class="status-badge status-inactive">Inactivo</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información Laboral -->
+                <div class="info-section">
+                    <h3><i class="fas fa-briefcase"></i> Información Laboral</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Área</div>
+                            <div class="info-value">{{ empleado.get_area_display|default:"No especificada" }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Gerencia</div>
+                            <div class="info-value">{{ empleado.get_gerencia_display|default:"No especificada" }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Manager</div>
+                            <div class="info-value">
+                                {% if empleado.manager %}
+                                    {{ empleado.manager.nombre }} {{ empleado.manager.apellido }}
+                                {% else %}
+                                    Sin manager asignado
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Roles</div>
+                            <div class="info-value">
+                                {% if empleado.es_rrhh %}
+                                    <span class="status-badge status-rrhh">RRHH</span>
+                                {% endif %}
+                                {% if empleado.puede_gestionar_equipo %}
+                                    <span class="status-badge status-manager">Gestión</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de Vacaciones -->
+                <div class="info-section">
+                    <h3><i class="fas fa-calendar-alt"></i> Información de Vacaciones</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Días Disponibles</div>
+                            <div class="info-value">{{ empleado.dias_vacaciones_disponibles }} días</div>
+                        </div>
+                        {% if empleado.puede_gestionar_equipo %}
+                        <div class="info-item">
+                            <div class="info-label">Empleados a Cargo</div>
+                            <div class="info-value">{{ empleado.equipo.count }} empleados</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

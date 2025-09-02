@@ -3,12 +3,142 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
+from django.db import models, transaction
 from datetime import datetime, date, timedelta
+import secrets
+import string
 from .models import Empleado, SolicitudVacaciones, SolicitudNuevoColaborador
 from .forms import SolicitudVacacionesForm, SolicitudNuevoColaboradorForm
+
+def generar_password_temporal():
+    """
+    Genera una contraseña temporal segura de 12 caracteres
+    """
+    caracteres = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(caracteres) for _ in range(12))
+
+def mapear_denominacion_a_jerarquia(denominacion_puesto):
+    """
+    Mapea la denominación del puesto a la jerarquía del empleado
+    """
+    mapeo = {
+        'gerente': 'gerente',
+        'sub_gerente': 'sub_gerente',
+        'jefe': 'jefe',
+        'supervisor': 'supervisor',
+        'analista': 'asistente',  # Los analistas van como asistentes
+        'coordinador': 'coordinador',
+    }
+    return mapeo.get(denominacion_puesto, 'auxiliar')  # auxiliar por defecto
+
+def mapear_area_a_gerencia(area_solicitante):
+    """
+    Mapea el área solicitante a una gerencia específica
+    """
+    mapeo = {
+        'comercial': 'gerencia_comercial_local',
+        'internacional': 'gerencia_comercial_internacional',
+        'recursos humanos': 'gerencia_desarrollo_organizacional',
+        'rrhh': 'gerencia_desarrollo_organizacional',
+        'finanzas': 'gerencia_administracion_finanzas',
+        'administracion': 'gerencia_administracion_finanzas',
+        'contabilidad': 'gerencia_administracion_finanzas',
+    }
+    
+    # Buscar coincidencias parciales en el área
+    area_lower = area_solicitante.lower()
+    for key, value in mapeo.items():
+        if key in area_lower:
+            return value
+    
+    # Por defecto, usar gerencia de desarrollo organizacional
+    return 'gerencia_desarrollo_organizacional'
+
+def mapear_area_a_gerencia(area):
+    """
+    Mapea el área a una gerencia válida
+    """
+    area_lower = area.lower()
+    if 'comercial' in area_lower and ('local' in area_lower or 'nacional' in area_lower):
+        return 'gerencia_comercial_local'
+    elif 'comercial' in area_lower and ('internacional' in area_lower or 'export' in area_lower):
+        return 'gerencia_comercial_internacional'
+    elif 'desarrollo' in area_lower or 'organizacional' in area_lower or 'rrhh' in area_lower:
+        return 'gerencia_desarrollo_organizacional'
+    elif 'administracion' in area_lower or 'finanzas' in area_lower or 'contabilidad' in area_lower:
+        return 'gerencia_administracion_finanzas'
+    else:
+        return 'gerencia_administracion_finanzas'  # Por defecto
+
+def normalizar_texto_username(texto):
+    """
+    Normaliza texto para usar como username removiendo acentos y caracteres especiales
+    """
+    import unicodedata
+    # Remover acentos
+    texto_normalizado = unicodedata.normalize('NFD', texto)
+    texto_sin_acentos = ''.join(c for c in texto_normalizado if unicodedata.category(c) != 'Mn')
+    # Convertir a minúsculas y remover espacios
+    texto_limpio = texto_sin_acentos.lower().replace(" ", "")
+    return texto_limpio
+
+def crear_empleado_desde_solicitud(solicitud, procesado_por):
+    """
+    Crea un usuario y empleado a partir de una solicitud aprobada
+    """
+    try:
+        with transaction.atomic():
+            # Generar username único basado en nombre.apellido
+            nombre_normalizado = normalizar_texto_username(solicitud.nombre_colaborador)
+            apellido_normalizado = normalizar_texto_username(solicitud.apellido_colaborador)
+            username_base = f"{nombre_normalizado}.{apellido_normalizado}"
+            username = username_base
+            
+            # Si ya existe, agregar un número al final
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{username_base}{counter}"
+                counter += 1
+            
+            # Crear usuario
+            password_temporal = generar_password_temporal()
+            user = User.objects.create_user(
+                username=username,
+                email=solicitud.email_colaborador,
+                password=password_temporal,
+                first_name=solicitud.nombre_colaborador,
+                last_name=solicitud.apellido_colaborador
+            )
+            
+            # Mapear denominación a jerarquía y área a gerencia
+            jerarquia = mapear_denominacion_a_jerarquia(solicitud.denominacion_puesto)
+            gerencia = mapear_area_a_gerencia(solicitud.area_solicitante)
+            
+            # Crear empleado
+            empleado = Empleado.objects.create(
+                user=user,
+                nombre=solicitud.nombre_colaborador,
+                apellido=solicitud.apellido_colaborador,
+                dni=solicitud.dni_colaborador,
+                email=solicitud.email_colaborador,
+                puesto=solicitud.puesto_a_solicitud,
+                area=solicitud.area_solicitante,
+                gerencia=gerencia,
+                jerarquia=jerarquia,
+                manager=solicitud.solicitante,  # El que solicitó será el manager
+                fecha_contratacion=solicitud.fecha_inicio_labores if solicitud.fecha_inicio_labores else timezone.now().date(),
+                es_rrhh=False,
+                dias_vacaciones_disponibles=30  # 30 días por defecto
+            )
+            
+            return user, empleado, password_temporal
+            
+    except Exception as e:
+        raise Exception(f"Error al crear empleado: {str(e)}")
 
 def login_empleado(request):
     """
@@ -45,13 +175,13 @@ def inicio_empleado(request):
     try:
         empleado = Empleado.objects.get(email=request.user.email)
         
-        # Verificar si es manager
-        es_manager = empleado.es_manager
-        equipo_count = empleado.equipo.count() if es_manager else 0
+        # Verificar si es manager o puede gestionar equipos
+        puede_gestionar_equipo = empleado.puede_gestionar_equipo
+        equipo_count = empleado.equipo.count() if puede_gestionar_equipo else 0
         
-        # Obtener solicitudes pendientes si es manager
+        # Obtener solicitudes pendientes si puede gestionar equipos
         solicitudes_pendientes = None
-        if es_manager:
+        if puede_gestionar_equipo:
             solicitudes_pendientes = SolicitudVacaciones.objects.filter(
                 empleado__manager=empleado,
                 estado='pendiente'
@@ -128,7 +258,7 @@ def inicio_empleado(request):
         
         contexto = {
             'empleado': empleado,
-            'es_manager': es_manager,
+            'puede_gestionar_equipo': puede_gestionar_equipo,
             'equipo_count': equipo_count,
             'solicitudes_pendientes': solicitudes_pendientes,
             # Información de vacaciones
@@ -489,14 +619,14 @@ def calcular_dias_vacaciones(request):
 @login_required
 def manager_dashboard(request):
     """
-    Dashboard para managers - muestra solicitudes de vacaciones de su equipo
+    Dashboard para managers y jefes - muestra solicitudes de vacaciones de su equipo
     """
     try:
         empleado = Empleado.objects.get(email=request.user.email)
         
-        # Verificar si es manager
-        if not empleado.es_manager:
-            messages.error(request, 'No tienes permisos de manager para acceder a esta página.')
+        # Verificar si puede gestionar equipos (managers o jefes)
+        if not empleado.puede_gestionar_equipo:
+            messages.error(request, 'No tienes permisos para gestionar equipos.')
             return redirect('inicio_empleado')
         
         # Obtener solicitudes pendientes del equipo
@@ -542,9 +672,9 @@ def procesar_solicitud_manager(request, solicitud_id):
     try:
         empleado = Empleado.objects.get(email=request.user.email)
         
-        # Verificar si es manager
-        if not empleado.es_manager:
-            messages.error(request, 'No tienes permisos de manager.')
+        # Verificar si puede gestionar equipos (managers o jefes)
+        if not empleado.puede_gestionar_equipo:
+            messages.error(request, 'No tienes permisos para procesar solicitudes de equipo.')
             return redirect('inicio_empleado')
         
         solicitud = get_object_or_404(SolicitudVacaciones, id=solicitud_id)
@@ -599,13 +729,13 @@ def procesar_solicitud_manager(request, solicitud_id):
 @login_required
 def equipo_manager(request):
     """
-    Vista para que los managers vean su equipo
+    Vista para que los managers y jefes vean su equipo
     """
     try:
         empleado = Empleado.objects.get(email=request.user.email)
 
-        if not empleado.es_manager:
-            messages.error(request, 'No tienes permisos de manager para acceder a esta página.')
+        if not empleado.puede_gestionar_equipo:
+            messages.error(request, 'No tienes permisos para gestionar equipos.')
             return redirect('inicio_empleado')
 
         # Obtener miembros del equipo
@@ -726,8 +856,8 @@ def nueva_solicitud_nuevo_colaborador(request):
         return redirect('login_empleado')
 
     # Solo Jefes/Managers pueden crear
-    if not (empleado.es_manager or 'Jefe' in empleado.puesto or 'Gerente' in empleado.puesto):
-        messages.error(request, 'Solo Jefes o Gerentes pueden crear esta solicitud.')
+    if not empleado.puede_gestionar_equipo:
+        messages.error(request, 'Solo usuarios con permisos de gestión pueden crear esta solicitud.')
         return redirect('inicio_empleado')
 
     # Queryset de posibles responsables: el manager + su equipo directo
@@ -781,10 +911,16 @@ def lista_solicitudes_nuevo_colaborador(request):
     else:
         solicitudes = SolicitudNuevoColaborador.objects.filter(solicitante=empleado).order_by('-fecha_solicitud')
 
+    # Obtener mensajes de sesión si existen
+    mensaje_procesamiento = request.session.pop('mensaje_procesamiento', None)
+    tipo_mensaje = request.session.pop('tipo_mensaje', None)
+
     return render(request, 'empleados/lista_solicitudes_nuevo_colaborador.html', {
         'solicitudes': solicitudes,
         'empleado': empleado,
-        'user': request.user
+        'user': request.user,
+        'mensaje_procesamiento': mensaje_procesamiento,
+        'tipo_mensaje': tipo_mensaje
     })
 
 
@@ -819,12 +955,55 @@ def procesar_solicitud_nuevo_colaborador_rrhh(request, solicitud_id: int):
                 })
 
         if accion in ['aprobado', 'rechazado', 'observado']:
-            solicitud.estado = accion
-            solicitud.fecha_resolucion = timezone.now()
-            solicitud.procesado_por = empleado
-            solicitud.comentario_rrhh = comentario
-            solicitud.save()
-            messages.success(request, f'Solicitud procesada: {accion}.')
+            # Si se aprueba la solicitud, crear automáticamente el empleado
+            if accion == 'aprobado':
+                try:
+                    user, nuevo_empleado, password_temporal = crear_empleado_desde_solicitud(solicitud, empleado)
+                    
+                    # Actualizar la solicitud
+                    solicitud.estado = accion
+                    solicitud.fecha_resolucion = timezone.now()
+                    solicitud.procesado_por = empleado
+                    solicitud.comentario_rrhh = comentario
+                    solicitud.save()
+                    
+                    # Redirigir a una página especial con las credenciales
+                    return render(request, 'empleados/empleado_creado_exitoso.html', {
+                        'solicitud': solicitud,
+                        'nuevo_empleado': nuevo_empleado,
+                        'username': user.username,
+                        'password_temporal': password_temporal,
+                        'empleado': empleado,
+                        'user': request.user,
+                        'mensaje_exito': 'Empleado creado exitosamente',
+                        'mensaje_info': f'Usuario creado: {user.username}',
+                        'mensaje_warning': 'IMPORTANTE: Guarda estas credenciales y entrégalas al nuevo empleado'
+                    })
+                    
+                except Exception as e:
+                    return render(request, 'empleados/procesar_solicitud_nuevo_colaborador.html', {
+                        'solicitud': solicitud,
+                        'empleado': empleado,
+                        'user': request.user,
+                        'error_mensaje': f'Error al crear el empleado: {str(e)}',
+                        'error_tipo': 'error'
+                    })
+            else:
+                # Solo actualizar la solicitud si se rechaza u observa
+                solicitud.estado = accion
+                solicitud.fecha_resolucion = timezone.now()
+                solicitud.procesado_por = empleado
+                solicitud.comentario_rrhh = comentario
+                solicitud.save()
+                
+                # Usar sesión para mostrar mensaje en la siguiente página
+                if accion == 'rechazado':
+                    request.session['mensaje_procesamiento'] = f'Solicitud rechazada exitosamente'
+                    request.session['tipo_mensaje'] = 'warning'
+                elif accion == 'observado':
+                    request.session['mensaje_procesamiento'] = f'Solicitud marcada como observada'
+                    request.session['tipo_mensaje'] = 'info'
+            
             return redirect('lista_solicitudes_nuevo_colaborador')
 
     return render(request, 'empleados/procesar_solicitud_nuevo_colaborador.html', {
@@ -1110,3 +1289,308 @@ def rrhh_notificar_manager_vacaciones(request, empleado_id):
         'empleado': empleado,
         'user': request.user
     })
+
+
+@login_required
+def rrhh_lista_empleados(request):
+    """
+    Vista para que RRHH vea la lista completa de empleados con todas sus funcionalidades
+    """
+    try:
+        empleado_rrhh = Empleado.objects.get(email=request.user.email)
+        if not empleado_rrhh.es_rrhh:
+            messages.error(request, 'No tienes permisos para acceder a esta sección.')
+            return redirect('inicio_empleado')
+    except Empleado.DoesNotExist:
+        messages.error(request, 'Empleado no encontrado.')
+        return redirect('login_empleado')
+
+    # Filtros de búsqueda
+    search_query = request.GET.get('search', '')
+    area_filter = request.GET.get('area', '')
+    gerencia_filter = request.GET.get('gerencia', '')
+    jerarquia_filter = request.GET.get('jerarquia', '')
+    estado_filter = request.GET.get('estado', '')
+
+    # Obtener empleados con filtros
+    empleados = Empleado.objects.all()
+
+    if search_query:
+        empleados = empleados.filter(
+            models.Q(nombre__icontains=search_query) |
+            models.Q(apellido__icontains=search_query) |
+            models.Q(dni__icontains=search_query) |
+            models.Q(email__icontains=search_query) |
+            models.Q(puesto__icontains=search_query)
+        )
+
+    if area_filter:
+        empleados = empleados.filter(area__icontains=area_filter)
+
+    if gerencia_filter:
+        empleados = empleados.filter(gerencia=gerencia_filter)
+
+    if jerarquia_filter:
+        empleados = empleados.filter(jerarquia=jerarquia_filter)
+
+    if estado_filter == 'activo':
+        empleados = empleados.filter(user__is_active=True)
+    elif estado_filter == 'inactivo':
+        empleados = empleados.filter(user__is_active=False)
+
+    # Ordenar por apellido y nombre
+    empleados = empleados.order_by('apellido', 'nombre')
+
+    # Obtener opciones para filtros
+    areas_disponibles = Empleado.objects.exclude(area__isnull=True).exclude(area='').values_list('area', flat=True).distinct()
+    gerencias_disponibles = [choice[0] for choice in Empleado.GERENCIA_CHOICES]
+    jerarquias_disponibles = [choice[0] for choice in Empleado.JERARQUIA_CHOICES]
+
+    context = {
+        'empleado_rrhh': empleado_rrhh,
+        'empleados': empleados,
+        'user': request.user,
+        'search_query': search_query,
+        'area_filter': area_filter,
+        'gerencia_filter': gerencia_filter,
+        'jerarquia_filter': jerarquia_filter,
+        'estado_filter': estado_filter,
+        'areas_disponibles': areas_disponibles,
+        'gerencias_disponibles': gerencias_disponibles,
+        'jerarquias_disponibles': jerarquias_disponibles,
+        'total_empleados': empleados.count(),
+    }
+
+    return render(request, 'empleados/rrhh_lista_empleados.html', context)
+
+
+@login_required
+def rrhh_editar_empleado(request, empleado_id):
+    """
+    Vista para que RRHH edite un empleado específico
+    """
+    try:
+        empleado_rrhh = Empleado.objects.get(email=request.user.email)
+        if not empleado_rrhh.es_rrhh:
+            messages.error(request, 'No tienes permisos para acceder a esta sección.')
+            return redirect('inicio_empleado')
+    except Empleado.DoesNotExist:
+        messages.error(request, 'Empleado no encontrado.')
+        return redirect('login_empleado')
+
+    empleado = get_object_or_404(Empleado, id=empleado_id)
+
+    if request.method == 'POST':
+        # Actualizar información del empleado
+        empleado.nombre = request.POST.get('nombre', empleado.nombre)
+        empleado.apellido = request.POST.get('apellido', empleado.apellido)
+        empleado.dni = request.POST.get('dni', empleado.dni)
+        empleado.email = request.POST.get('email', empleado.email)
+        empleado.puesto = request.POST.get('puesto', empleado.puesto)
+        empleado.area = request.POST.get('area', empleado.area)
+        empleado.gerencia = request.POST.get('gerencia', empleado.gerencia)
+        empleado.jerarquia = request.POST.get('jerarquia', empleado.jerarquia)
+        empleado.dias_vacaciones_disponibles = int(request.POST.get('dias_vacaciones', empleado.dias_vacaciones_disponibles))
+        empleado.es_rrhh = request.POST.get('es_rrhh') == 'on'
+
+        # Actualizar manager si se especifica
+        manager_id = request.POST.get('manager')
+        if manager_id:
+            try:
+                empleado.manager = Empleado.objects.get(id=manager_id)
+            except Empleado.DoesNotExist:
+                empleado.manager = None
+        else:
+            empleado.manager = None
+
+        # Actualizar estado del usuario
+        usuario_activo = request.POST.get('usuario_activo') == 'on'
+        if empleado.user:
+            empleado.user.is_active = usuario_activo
+            empleado.user.save()
+
+        try:
+            empleado.save()
+            messages.success(request, f'Empleado {empleado.nombre} {empleado.apellido} actualizado exitosamente.')
+            return redirect('rrhh_lista_empleados')
+        except Exception as e:
+            messages.error(request, f'Error al actualizar empleado: {str(e)}')
+
+    # Obtener lista de posibles managers (empleados que pueden gestionar equipos)
+    posibles_managers = Empleado.objects.filter(
+        jerarquia__in=['director', 'gerente', 'sub_gerente', 'jefe']
+    ).exclude(id=empleado.id)
+
+    context = {
+        'empleado_rrhh': empleado_rrhh,
+        'empleado': empleado,
+        'posibles_managers': posibles_managers,
+        'gerencias_disponibles': Empleado.GERENCIA_CHOICES,
+        'jerarquias_disponibles': Empleado.JERARQUIA_CHOICES,
+        'user': request.user
+    }
+
+    return render(request, 'empleados/rrhh_editar_empleado.html', context)
+
+
+@login_required
+def rrhh_offboarding_empleado(request, empleado_id):
+    """
+    Vista para el proceso de offboarding (baja) de un empleado
+    """
+    try:
+        empleado_rrhh = Empleado.objects.get(email=request.user.email)
+        if not empleado_rrhh.es_rrhh:
+            messages.error(request, 'No tienes permisos para acceder a esta sección.')
+            return redirect('inicio_empleado')
+    except Empleado.DoesNotExist:
+        messages.error(request, 'Empleado no encontrado.')
+        return redirect('login_empleado')
+
+    empleado = get_object_or_404(Empleado, id=empleado_id)
+
+    if request.method == 'POST':
+        tipo_baja = request.POST.get('tipo_baja')
+        fecha_baja = request.POST.get('fecha_baja')
+        motivo = request.POST.get('motivo', '')
+        observaciones = request.POST.get('observaciones', '')
+
+        # Desactivar cuenta de usuario
+        if empleado.user:
+            empleado.user.is_active = False
+            empleado.user.save()
+
+        # Aquí podrías agregar más lógica de offboarding como:
+        # - Crear registro en tabla de bajas
+        # - Enviar notificaciones
+        # - Transferir responsabilidades
+        # - etc.
+
+        messages.success(request, f'Proceso de offboarding completado para {empleado.nombre} {empleado.apellido}')
+        return redirect('rrhh_lista_empleados')
+
+    context = {
+        'empleado_rrhh': empleado_rrhh,
+        'empleado': empleado,
+        'user': request.user
+    }
+
+    return render(request, 'empleados/rrhh_offboarding_empleado.html', context)
+
+
+@login_required
+def ver_perfil_empleado(request, empleado_id):
+    """
+    Vista para que managers/jefes vean el perfil de un miembro de su equipo
+    """
+    try:
+        empleado_actual = Empleado.objects.get(email=request.user.email)
+        
+        # Verificar permisos: solo managers/jefes pueden ver perfiles de su equipo
+        if not empleado_actual.puede_gestionar_equipo:
+            messages.error(request, 'No tienes permisos para ver este perfil.')
+            return redirect('inicio_empleado')
+        
+        # Obtener el empleado cuyo perfil se quiere ver
+        empleado = get_object_or_404(Empleado, id=empleado_id)
+        
+        # Verificar que el empleado pertenece al equipo del manager
+        if empleado.manager != empleado_actual:
+            messages.error(request, 'Solo puedes ver perfiles de tu equipo.')
+            return redirect('equipo_manager')
+        
+        context = {
+            'empleado': empleado,
+            'empleado_manager': empleado_actual,
+            'user': request.user
+        }
+        
+        return render(request, 'empleados/ver_perfil_empleado.html', context)
+        
+    except Empleado.DoesNotExist:
+        messages.error(request, 'No tienes un perfil de empleado asociado.')
+        return redirect('login_empleado')
+
+
+@login_required 
+def ver_solicitudes_empleado(request, empleado_id):
+    """
+    Vista para que managers/jefes vean las solicitudes de un miembro de su equipo
+    """
+    try:
+        empleado_actual = Empleado.objects.get(email=request.user.email)
+        
+        # Verificar permisos: solo managers/jefes pueden ver solicitudes de su equipo
+        if not empleado_actual.puede_gestionar_equipo:
+            messages.error(request, 'No tienes permisos para ver estas solicitudes.')
+            return redirect('inicio_empleado')
+        
+        # Obtener el empleado cuyas solicitudes se quieren ver
+        empleado = get_object_or_404(Empleado, id=empleado_id)
+        
+        # Verificar que el empleado pertenece al equipo del manager
+        if empleado.manager != empleado_actual:
+            messages.error(request, 'Solo puedes ver solicitudes de tu equipo.')
+            return redirect('equipo_manager')
+        
+        # Obtener solicitudes de vacaciones del empleado
+        solicitudes_vacaciones = SolicitudVacaciones.objects.filter(
+            empleado=empleado
+        ).order_by('-fecha_solicitud')
+        
+        # Obtener solicitudes de nuevo colaborador creadas por el empleado
+        solicitudes_colaborador = SolicitudNuevoColaborador.objects.filter(
+            solicitante=empleado
+        ).order_by('-fecha_solicitud')
+        
+        context = {
+            'empleado': empleado,
+            'empleado_manager': empleado_actual,
+            'solicitudes_vacaciones': solicitudes_vacaciones,
+            'solicitudes_colaborador': solicitudes_colaborador,
+            'user': request.user
+        }
+        
+        return render(request, 'empleados/ver_solicitudes_empleado.html', context)
+        
+    except Empleado.DoesNotExist:
+        messages.error(request, 'No tienes un perfil de empleado asociado.')
+        return redirect('login_empleado')
+
+
+@login_required
+def detalle_solicitud_empleado(request, empleado_id, solicitud_id):
+    """
+    Vista para que managers/jefes vean el detalle de una solicitud de un miembro de su equipo
+    """
+    try:
+        empleado_actual = Empleado.objects.get(email=request.user.email)
+        
+        # Verificar permisos: solo managers/jefes pueden ver solicitudes de su equipo
+        if not empleado_actual.puede_gestionar_equipo:
+            messages.error(request, 'No tienes permisos para ver esta solicitud.')
+            return redirect('inicio_empleado')
+        
+        # Obtener el empleado cuya solicitud se quiere ver
+        empleado = get_object_or_404(Empleado, id=empleado_id)
+        
+        # Verificar que el empleado pertenece al equipo del manager
+        if empleado.manager != empleado_actual:
+            messages.error(request, 'Solo puedes ver solicitudes de tu equipo.')
+            return redirect('equipo_manager')
+        
+        # Obtener la solicitud específica
+        solicitud = get_object_or_404(SolicitudVacaciones, id=solicitud_id, empleado=empleado)
+        
+        context = {
+            'empleado': empleado,
+            'empleado_manager': empleado_actual,
+            'solicitud': solicitud,
+            'user': request.user
+        }
+        
+        return render(request, 'empleados/detalle_solicitud_empleado.html', context)
+        
+    except Empleado.DoesNotExist:
+        messages.error(request, 'No tienes un perfil de empleado asociado.')
+        return redirect('login_empleado')

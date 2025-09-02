@@ -57,6 +57,38 @@
           <div class="help-text">Quien dará seguimiento al proceso</div>
         </div>
         <div class="col-md-6">
+          <label class="form-label" for="id_dni_colaborador">DNI del Colaborador</label>
+          {{ form.dni_colaborador }}
+          <div class="help-text">{{ form.dni_colaborador.help_text }}</div>
+          {% if form.dni_colaborador.errors %}
+            <div class="text-danger small">{{ form.dni_colaborador.errors|first }}</div>
+          {% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_nombre_colaborador">Nombre del Colaborador</label>
+          {{ form.nombre_colaborador }}
+          <div class="help-text">{{ form.nombre_colaborador.help_text }}</div>
+          {% if form.nombre_colaborador.errors %}
+            <div class="text-danger small">{{ form.nombre_colaborador.errors|first }}</div>
+          {% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_apellido_colaborador">Apellido del Colaborador</label>
+          {{ form.apellido_colaborador }}
+          <div class="help-text">{{ form.apellido_colaborador.help_text }}</div>
+          {% if form.apellido_colaborador.errors %}
+            <div class="text-danger small">{{ form.apellido_colaborador.errors|first }}</div>
+          {% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_email_colaborador">Email del Colaborador</label>
+          {{ form.email_colaborador }}
+          <div class="help-text">{{ form.email_colaborador.help_text }}</div>
+          {% if form.email_colaborador.errors %}
+            <div class="text-danger small">{{ form.email_colaborador.errors|first }}</div>
+          {% endif %}
+        </div>
+        <div class="col-md-6">
           <label class="form-label" for="id_fecha_inicio_labores">Fecha de inicio de labores</label>
           {{ form.fecha_inicio_labores }}
           <div class="help-text">Propuesta de incorporación</div>
@@ -73,10 +105,13 @@
           <label class="form-label" for="id_denominacion_puesto">Denominación del Puesto</label>
           {{ form.denominacion_puesto }}
         </div>
-        <div class="col-12">
+        <div class="col-md-6">
           <label class="form-label" for="id_motivo_contratacion">Motivo de la contratación</label>
           {{ form.motivo_contratacion }}
-          <div class="help-text">Describe brevemente la necesidad del puesto</div>
+          <div class="help-text">Seleccione el motivo que mejor describa la necesidad</div>
+          {% if form.motivo_contratacion.errors %}
+            <div class="text-danger small">{{ form.motivo_contratacion.errors|first }}</div>
+          {% endif %}
         </div>
         <div class="col-md-6">
           <label class="form-label" for="id_modalidad_contratacion">Modalidad de Contratación</label>

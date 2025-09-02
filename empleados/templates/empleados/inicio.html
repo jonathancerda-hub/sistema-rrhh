@@ -321,6 +321,77 @@
         .progress-bar {
             transition: width .3s ease;
         }
+
+        /* Estilos para las tarjetas de acciones principales */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .action-card-main {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 200px;
+            text-align: center;
+        }
+
+        .action-card-main:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-card-icon-main {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .action-card-title-main {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-card-button-main {
+            margin-top: auto;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .action-card-button-main:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
@@ -351,6 +422,10 @@
                         {% if empleado.es_manager %}
                         <span class="employee-badge manager">
                             <i class="bi bi-people"></i> Manager
+                        </span>
+                        {% elif empleado.jerarquia == 'jefe' %}
+                        <span class="employee-badge manager">
+                            <i class="bi bi-person-badge"></i> Jefe
                         </span>
                         {% endif %}
                         {% if empleado.es_empleado_rrhh %}
@@ -388,7 +463,7 @@
                     <div class="employee-detail-value">{{ antiguedad_dias|floatformat:0 }} días</div>
                     <div class="employee-detail-label">Antigüedad</div>
                 </div>
-                {% if es_manager %}
+                {% if puede_gestionar_equipo %}
                 <div class="employee-detail-item">
                     <div class="employee-detail-value">{{ equipo_count }}</div>
                     <div class="employee-detail-label">Equipo a Cargo</div>
@@ -456,112 +531,121 @@
             </div>
             
             <div class="actions-grid">
-                <div class="action-card">
-                    <div class="action-icon">
+                <div class="action-card-main">
+                    <div class="action-card-icon-main">
                         <i class="bi bi-calendar-plus"></i>
                     </div>
-                    <h5>Solicitar Vacaciones</h5>
-                    <p class="text-muted">Crea una nueva solicitud de vacaciones</p>
-                    <a href="{% url 'nueva_solicitud_vacaciones' %}" class="btn-gradient">
+                    <div class="action-card-title-main">Solicitar Vacaciones</div>
+                    <a href="{% url 'nueva_solicitud_vacaciones' %}" class="action-card-button-main">
                         <i class="bi bi-plus-circle"></i> Solicitar
                     </a>
                 </div>
 
-                <div class="action-card">
-                    <div class="action-icon">
+                <div class="action-card-main">
+                    <div class="action-card-icon-main">
                         <i class="bi bi-list-ul"></i>
                     </div>
-                    <h5>Mis Solicitudes</h5>
-                    <p class="text-muted">Revisa el estado de tus solicitudes</p>
-                    <a href="{% url 'solicitudes_vacaciones' %}" class="btn-gradient">
+                    <div class="action-card-title-main">Mis Solicitudes</div>
+                    <a href="{% url 'solicitudes_vacaciones' %}" class="action-card-button-main">
                         <i class="bi bi-eye"></i> Ver
                     </a>
                 </div>
 
-                <div class="action-card">
-                    <div class="action-icon">
+                <div class="action-card-main">
+                    <div class="action-card-icon-main">
                         <i class="bi bi-person-circle"></i>
                     </div>
-                    <h5>Mi Perfil</h5>
-                    <p class="text-muted">Actualiza tu información personal</p>
-                    <a href="{% url 'perfil_empleado' %}" class="btn-gradient">
+                    <div class="action-card-title-main">Mi Perfil</div>
+                    <a href="{% url 'perfil_empleado' %}" class="action-card-button-main">
                         <i class="bi bi-pencil"></i> Editar
                     </a>
                 </div>
 
-                {% if es_manager %}
-                <div class="action-card">
-                    <div class="action-icon">
+                {% if puede_gestionar_equipo %}
+                <div class="action-card-main">
+                    <div class="action-card-icon-main">
                         <i class="bi bi-people"></i>
                     </div>
-                    <h5>Dashboard Manager</h5>
-                    <p class="text-muted">Gestiona solicitudes de tu equipo</p>
-                    <a href="{% url 'manager_dashboard' %}" class="btn-gradient">
+                    <div class="action-card-title-main">Dashboard de Gestión</div>
+                    <a href="{% url 'manager_dashboard' %}" class="action-card-button-main">
                         <i class="bi bi-speedometer2"></i> Acceder
                     </a>
                 </div>
 
-                <div class="action-card">
-                    <div class="action-icon">
+                <div class="action-card-main">
+                    <div class="action-card-icon-main">
                         <i class="bi bi-person-lines-fill"></i>
                     </div>
-                    <h5>Mi Equipo</h5>
-                    <p class="text-muted">Ver miembros de tu equipo</p>
-                    <a href="{% url 'equipo_manager' %}" class="btn-gradient">
-                        <i class="bi bi-group"></i> Ver Equipo
+                    <div class="action-card-title-main">Mi Equipo</div>
+                    <a href="{% url 'equipo_manager' %}" class="action-card-button-main">
+                        <i class="bi bi-people"></i> Ver Equipo
+                    </a>
+                </div>
+
+                <div class="action-card-main">
+                    <div class="action-card-icon-main">
+                        <i class="bi bi-person-plus"></i>
+                    </div>
+                    <div class="action-card-title-main">Solicitar Colaborador</div>
+                    <a href="{% url 'nueva_solicitud_nuevo_colaborador' %}" class="action-card-button-main">
+                        <i class="bi bi-plus"></i> Solicitar
                     </a>
                 </div>
                 {% endif %}
 
                 {% if empleado.es_empleado_rrhh %}
-                <div class="action-card">
-                    <div class="action-icon">
+                <div class="action-card-main">
+                    <div class="action-card-icon-main">
                         <i class="bi bi-shield-check"></i>
                     </div>
-                    <h5>Dashboard RRHH</h5>
-                    <p class="text-muted">Gestiona todas las solicitudes de la empresa</p>
-                    <a href="{% url 'rrhh_dashboard' %}" class="btn-gradient">
+                    <div class="action-card-title-main">Dashboard RRHH</div>
+                    <a href="{% url 'rrhh_dashboard' %}" class="action-card-button-main">
                         <i class="bi bi-speedometer2"></i> Acceder
                     </a>
                 </div>
 
-                <div class="action-card">
-                    <div class="action-icon">
+                <div class="action-card-main">
+                    <div class="action-card-icon-main">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="action-card-title-main">Gestión de Empleados</div>
+                    <a href="{% url 'rrhh_lista_empleados' %}" class="action-card-button-main">
+                        <i class="bi bi-people"></i> Gestionar
+                    </a>
+                </div>
+
+                <div class="action-card-main">
+                    <div class="action-card-icon-main">
                         <i class="bi bi-calendar-check"></i>
                     </div>
-                    <h5>Control de Vacaciones</h5>
-                    <p class="text-muted">Controla días de vacaciones de todos los empleados</p>
-                    <a href="{% url 'rrhh_control_vacaciones' %}" class="btn-gradient">
+                    <div class="action-card-title-main">Control de Vacaciones</div>
+                    <a href="{% url 'rrhh_control_vacaciones' %}" class="action-card-button-main">
                         <i class="bi bi-calendar-check"></i> Controlar
                     </a>
                 </div>
 
-                <div class="action-card">
-                    <div class="action-icon">
+                <div class="action-card-main">
+                    <div class="action-card-icon-main">
                         <i class="bi bi-history"></i>
                     </div>
-                    <h5>Historial de Vacaciones</h5>
-                    <p class="text-muted">Ver historial completo de solicitudes</p>
-                    <a href="{% url 'rrhh_historial_vacaciones' %}" class="btn-gradient">
+                    <div class="action-card-title-main">Historiales</div>
+                    <a href="{% url 'rrhh_historial_vacaciones' %}" class="action-card-button-main">
                         <i class="bi bi-clock-history"></i> Ver Historial
                     </a>
                 </div>
 
-                <div class="action-card">
-                    <div class="action-icon">
-                        <i class="bi bi-person-plus"></i>
+                <div class="action-card-main">
+                    <div class="action-card-icon-main">
+                        <i class="bi bi-gear"></i>
                     </div>
-                    <h5>Historial Nuevo Colaborador</h5>
-                    <p class="text-muted">Gestiona solicitudes de nuevos colaboradores</p>
-                    <a href="{% url 'rrhh_historial_nuevo_colaborador' %}" class="btn-gradient">
-                        <i class="bi bi-people-fill"></i> Gestionar
+                    <div class="action-card-title-main">Configuración</div>
+                    <a href="{% url 'configurar_notificaciones' %}" class="action-card-button-main">
+                        <i class="bi bi-gear"></i> Configurar
                     </a>
                 </div>
                 {% endif %}
             </div>
-        </div>
-
-        <!-- Cerrar sesión -->
+        </div>        <!-- Cerrar sesión -->
         <div class="text-center">
             <a href="{% url 'logout_empleado' %}" class="btn btn-outline-light">
                 <i class="bi bi-box-arrow-right"></i> Cerrar Sesión

@@ -26,6 +26,20 @@
       <a href="{% url 'nueva_solicitud_nuevo_colaborador' %}" class="btn btn-sm btn-light">Nueva solicitud</a>
     </div>
     <div class="p-3">
+      <!-- Mensajes de Procesamiento -->
+      {% if mensaje_procesamiento %}
+      <div class="alert alert-{{ tipo_mensaje|default:'success' }} d-flex align-items-center mb-3" role="alert">
+        {% if tipo_mensaje == 'warning' %}
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        {% elif tipo_mensaje == 'info' %}
+        <i class="fas fa-info-circle me-2"></i>
+        {% else %}
+        <i class="fas fa-check-circle me-2"></i>
+        {% endif %}
+        <strong>{{ mensaje_procesamiento }}</strong>
+      </div>
+      {% endif %}
+      
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0">Total de solicitudes: {{ solicitudes|length }}</h5>
         <a href="{% url 'manager_dashboard' %}" class="btn btn-outline-primary">Regresar al Dashboard</a>
@@ -34,6 +48,7 @@
     <thead>
       <tr>
         <th>Área</th>
+        <th>DNI Colaborador</th>
         <th>Puesto</th>
         <th>Grupo</th>
         <th>Inicio</th>
@@ -45,6 +60,7 @@
       {% for s in solicitudes %}
       <tr>
         <td>{{ s.area_solicitante }}</td>
+        <td><span class="badge bg-secondary">{{ s.dni_colaborador|default:"Sin DNI" }}</span></td>
         <td>{{ s.puesto_a_solicitud }}</td>
         <td>{{ s.get_grupo_ocupacional_display }}</td>
         <td>{{ s.fecha_inicio_labores }}</td>
@@ -61,13 +77,30 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="6" class="text-center text-muted py-4">No hay solicitudes.</td></tr>
+      <tr><td colspan="7" class="text-center text-muted py-4">No hay solicitudes.</td></tr>
       {% endfor %}
     </tbody>
   </table>
-    </div>
-  </div>
 </div>
+</div>
+</div>
+
+<script>
+  // Auto-ocultar mensajes de procesamiento después de 5 segundos
+  document.addEventListener('DOMContentLoaded', function() {
+    const alertMessage = document.querySelector('.alert');
+    if (alertMessage) {
+      setTimeout(() => {
+        alertMessage.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        alertMessage.style.opacity = '0';
+        alertMessage.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+          alertMessage.style.display = 'none';
+        }, 500);
+      }, 5000);
+    }
+  });
+</script>
+
 </body>
 </html>
-

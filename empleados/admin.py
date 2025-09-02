@@ -3,11 +3,11 @@ from .models import Empleado, SolicitudVacaciones, SolicitudNuevoColaborador
 
 @admin.register(Empleado)
 class EmpleadoAdmin(admin.ModelAdmin):
-    list_display = ['nombre', 'apellido', 'email', 'puesto', 'jerarquia', 'gerencia', 'fecha_contratacion', 'dias_vacaciones_disponibles', 'manager', 'es_manager', 'puede_solicitar_nuevo_empleado']
+    list_display = ['nombre', 'apellido', 'email', 'puesto', 'jerarquia', 'gerencia', 'fecha_contratacion', 'dias_vacaciones_disponibles', 'manager', 'puede_gestionar_equipo', 'puede_solicitar_nuevo_empleado']
     list_filter = ['puesto', 'jerarquia', 'gerencia', 'fecha_contratacion', 'manager', 'es_rrhh']
     search_fields = ['nombre', 'apellido', 'email', 'puesto', 'gerencia', 'jerarquia']
     ordering = ['nombre', 'apellido']
-    readonly_fields = ['es_manager', 'puede_solicitar_nuevo_empleado']
+    readonly_fields = ['puede_gestionar_equipo', 'puede_solicitar_nuevo_empleado']
     
     fieldsets = (
         ('Información Personal', {
@@ -17,7 +17,7 @@ class EmpleadoAdmin(admin.ModelAdmin):
             'fields': ('jerarquia', 'gerencia', 'area', 'fecha_contratacion', 'dias_vacaciones_disponibles', 'manager')
         }),
         ('Información del Sistema', {
-            'fields': ('es_manager', 'es_rrhh', 'puede_solicitar_nuevo_empleado'),
+            'fields': ('puede_gestionar_equipo', 'es_rrhh', 'puede_solicitar_nuevo_empleado'),
             'classes': ('collapse',)
         }),
     )

@@ -4,7 +4,8 @@
 # gh repo create sistema-rrhh --public
 
 # 2. Agregar remote (reemplaza TU-USUARIO)
-git remote add origin https://github.com/TU-USUARIO/sistema-rrhh.git
+git remote add origin https://github.com/jonathancerda-hub
+/sistema-rrhh.git
 
 # 3. Subir código
 git push -u origin main

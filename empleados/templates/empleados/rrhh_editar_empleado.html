@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Empleado - RRHH</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .form-section {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .employee-photo {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2><i class="fas fa-user-edit text-primary"></i> Editar Empleado</h2>
+                        <p class="text-muted">{{ empleado.nombre }} {{ empleado.apellido }}</p>
+                    </div>
+                    <div>
+                        <a href="{% url 'rrhh_lista_empleados' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver a Lista
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            <!-- Información Personal -->
+            <div class="form-section">
+                <h5><i class="fas fa-user"></i> Información Personal</h5>
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        {% if empleado.foto_perfil %}
+                            <img src="{{ empleado.foto_perfil.url }}" alt="Foto" class="employee-photo mb-3">
+                        {% else %}
+                            <div class="employee-photo bg-secondary d-flex align-items-center justify-content-center text-white mx-auto mb-3">
+                                <i class="fas fa-user fa-3x"></i>
+                            </div>
+                        {% endif %}
+                        <p class="text-muted small">ID: {{ empleado.id }}</p>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nombre" class="form-label">Nombre</label>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" 
+                                           value="{{ empleado.nombre }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="apellido" class="form-label">Apellido</label>
+                                    <input type="text" class="form-control" id="apellido" name="apellido" 
+                                           value="{{ empleado.apellido }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="dni" class="form-label">DNI</label>
+                                    <input type="text" class="form-control" id="dni" name="dni" 
+                                           value="{{ empleado.dni }}" maxlength="8" pattern="[0-9]{8}" 
+                                           title="Ingrese exactamente 8 dígitos" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           value="{{ empleado.email }}" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Laboral -->
+            <div class="form-section">
+                <h5><i class="fas fa-briefcase"></i> Información Laboral</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="puesto" class="form-label">Puesto</label>
+                            <input type="text" class="form-control" id="puesto" name="puesto" 
+                                   value="{{ empleado.puesto }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="area" class="form-label">Área</label>
+                            <input type="text" class="form-control" id="area" name="area" 
+                                   value="{{ empleado.area }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="gerencia" class="form-label">Gerencia</label>
+                            <select class="form-select" id="gerencia" name="gerencia">
+                                <option value="">Seleccionar gerencia</option>
+                                {% for gerencia_key, gerencia_nombre in gerencias_disponibles %}
+                                    <option value="{{ gerencia_key }}" 
+                                            {% if empleado.gerencia == gerencia_key %}selected{% endif %}>
+                                        {{ gerencia_nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="jerarquia" class="form-label">Jerarquía</label>
+                            <select class="form-select" id="jerarquia" name="jerarquia">
+                                {% for jerarquia_key, jerarquia_nombre in jerarquias_disponibles %}
+                                    <option value="{{ jerarquia_key }}" 
+                                            {% if empleado.jerarquia == jerarquia_key %}selected{% endif %}>
+                                        {{ jerarquia_nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="manager" class="form-label">Manager</label>
+                            <select class="form-select" id="manager" name="manager">
+                                <option value="">Sin manager</option>
+                                {% for manager in posibles_managers %}
+                                    <option value="{{ manager.id }}" 
+                                            {% if empleado.manager and empleado.manager.id == manager.id %}selected{% endif %}>
+                                        {{ manager.nombre }} {{ manager.apellido }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="dias_vacaciones" class="form-label">Días de Vacaciones Disponibles</label>
+                            <input type="number" class="form-control" id="dias_vacaciones" name="dias_vacaciones" 
+                                   value="{{ empleado.dias_vacaciones_disponibles }}" min="0" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Roles y Permisos -->
+            <div class="form-section">
+                <h5><i class="fas fa-shield-alt"></i> Roles y Permisos</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="es_rrhh" name="es_rrhh"
+                                   {% if empleado.es_rrhh %}checked{% endif %}>
+                            <label class="form-check-label" for="es_rrhh">
+                                <i class="fas fa-user-tie"></i> Es RRHH
+                            </label>
+                            <small class="form-text text-muted d-block">
+                                Acceso completo al sistema de RRHH
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="usuario_activo" name="usuario_activo"
+                                   {% if empleado.user.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="usuario_activo">
+                                <i class="fas fa-user-check"></i> Usuario Activo
+                            </label>
+                            <small class="form-text text-muted d-block">
+                                Puede acceder al sistema
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="form-section">
+                <h5><i class="fas fa-info-circle"></i> Información Adicional</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Fecha de Contratación:</strong> {{ empleado.fecha_contratacion }}</p>
+                        <p><strong>Usuario del Sistema:</strong> 
+                            {% if empleado.user %}
+                                {{ empleado.user.username }}
+                            {% else %}
+                                <span class="text-muted">Sin usuario asignado</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        {% if empleado.puede_gestionar_equipo %}
+                            <p><strong>Empleados a Cargo:</strong> {{ empleado.equipo.count }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="d-flex justify-content-between">
+                <div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                    <a href="{% url 'rrhh_lista_empleados' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </div>
+                <div>
+                    {% if empleado.user.is_active %}
+                        <a href="{% url 'rrhh_offboarding_empleado' empleado.id %}" 
+                           class="btn btn-outline-danger"
+                           onclick="return confirm('¿Está seguro de iniciar el proceso de offboarding para este empleado?')">
+                            <i class="fas fa-user-times"></i> Iniciar Offboarding
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema RRHH - Documentación Completa</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 15px;
+            margin-bottom: 3rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 0.5rem;
+            font-weight: 600;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.8rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .section h3 {
+            color: #4a5568;
+            margin: 1.5rem 0 1rem 0;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .feature-card {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 1.5rem;
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .feature-card h4 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feature-card p {
+            color: #718096;
+            margin-bottom: 1rem;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            color: #48bb78;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .tech-item {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .hierarchy-chart {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .hierarchy-level {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+
+        .level-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+
+        .url-example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 0.5rem 0;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            margin: 0.25rem;
+        }
+
+        .status-completed {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-enhanced {
+            background: #bee3f8;
+            color: #1a365d;
+        }
+
+        .status-new {
+            background: #fef5e7;
+            color: #744210;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline:before {
+            content: '';
+            position: absolute;
+            left: 1rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #667eea;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .timeline-item:before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 1rem;
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .permissions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .permissions-table th,
+        .permissions-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .permissions-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .permissions-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .check-icon {
+            color: #48bb78;
+        }
+
+        .cross-icon {
+            color: #f56565;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tech-stack {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-building"></i> Sistema RRHH</h1>
+            <p>Documentación Completa del Sistema de Recursos Humanos</p>
+            <div>
+                <span class="badge">Django 5.2.5</span>
+                <span class="badge">Python 3.11.9</span>
+                <span class="badge">SQLite</span>
+                <span class="badge">Bootstrap</span>
+            </div>
+        </div>
+
+        <!-- Resumen Ejecutivo -->
+        <div class="section">
+            <h2><i class="fas fa-chart-line"></i> Resumen Ejecutivo</h2>
+            <p>El Sistema RRHH es una aplicación web completa desarrollada en Django que gestiona empleados, solicitudes de vacaciones, nuevos colaboradores y jerarquías organizacionales. El sistema implementa un robusto sistema de permisos basado en roles y jerarquías, con interfaces modernas y responsivas.</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4><i class="fas fa-users"></i> Gestión de Empleados</h4>
+                    <p>Sistema completo de CRUD para empleados con validaciones y campos específicos como DNI.</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-calendar-alt"></i> Solicitudes de Vacaciones</h4>
+                    <p>Flujo completo de solicitudes con aprobaciones por jerarquía y control de días disponibles.</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-user-plus"></i> Nuevos Colaboradores</h4>
+                    <p>Proceso de solicitud y aprobación para incorporación de nuevos empleados al equipo.</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-shield-alt"></i> Sistema de Permisos</h4>
+                    <p>Control granular de acceso basado en roles y jerarquías organizacionales.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stack Tecnológico -->
+        <div class="section">
+            <h2><i class="fas fa-code"></i> Stack Tecnológico</h2>
+            <div class="tech-stack">
+                <div class="tech-item">
+                    <i class="fab fa-python"></i> Python 3.11.9
+                </div>
+                <div class="tech-item">
+                    <i class="fas fa-globe"></i> Django 5.2.5
+                </div>
+                <div class="tech-item">
+                    <i class="fas fa-database"></i> SQLite
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-html5"></i> HTML5
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-css3-alt"></i> CSS3
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-js"></i> JavaScript
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-bootstrap"></i> Bootstrap 5
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-git-alt"></i> Git
+                </div>
+            </div>
+        </div>
+
+        <!-- Jerarquía Organizacional -->
+        <div class="section">
+            <h2><i class="fas fa-sitemap"></i> Jerarquía Organizacional</h2>
+            <p>El sistema implementa una jerarquía de 8 niveles que determina permisos y flujos de aprobación:</p>
+            
+            <div class="hierarchy-chart">
+                <div class="hierarchy-level">
+                    <div class="level-number">1</div>
+                    <strong>Director</strong> - Máximo nivel jerárquico
+                </div>
+                <div class="hierarchy-level">
+                    <div class="level-number">2</div>
+                    <strong>Gerente</strong> - Gestión de áreas completas
+                </div>
+                <div class="hierarchy-level">
+                    <div class="level-number">3</div>
+                    <strong>Sub-gerente</strong> - Apoyo a la gerencia
+                </div>
+                <div class="hierarchy-level">
+                    <div class="level-number">4</div>
+                    <strong>Jefe</strong> - Liderazgo de equipos
+                </div>
+                <div class="hierarchy-level">
+                    <div class="level-number">5</div>
+                    <strong>Supervisor</strong> - Supervisión directa
+                </div>
+                <div class="hierarchy-level">
+                    <div class="level-number">6</div>
+                    <strong>Coordinador</strong> - Coordinación de procesos
+                </div>
+                <div class="hierarchy-level">
+                    <div class="level-number">7</div>
+                    <strong>Asistente</strong> - Apoyo especializado
+                </div>
+                <div class="hierarchy-level">
+                    <div class="level-number">8</div>
+                    <strong>Auxiliar</strong> - Apoyo operativo
+                </div>
+            </div>
+        </div>
+
+        <!-- Sistema de Permisos -->
+        <div class="section">
+            <h2><i class="fas fa-lock"></i> Sistema de Permisos</h2>
+            <p>El sistema implementa un robusto control de acceso basado en propiedades del modelo:</p>
+
+            <h3><i class="fas fa-cog"></i> Propiedades de Permisos</h3>
+            <ul class="feature-list">
+                <li><strong>puede_solicitar_nuevo_empleado</strong>: Directores, Gerentes, Sub-gerentes y Jefes</li>
+                <li><strong>puede_gestionar_equipo</strong>: Directores, Gerentes, Sub-gerentes, Jefes y Managers</li>
+                <li><strong>es_rrhh</strong>: Personal de Recursos Humanos con acceso completo</li>
+            </ul>
+
+            <table class="permissions-table">
+                <thead>
+                    <tr>
+                        <th>Funcionalidad</th>
+                        <th>RRHH</th>
+                        <th>Director/Gerente</th>
+                        <th>Jefe/Supervisor</th>
+                        <th>Empleado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Gestión completa de empleados</td>
+                        <td><i class="fas fa-check check-icon"></i></td>
+                        <td><i class="fas fa-times cross-icon"></i></td>
+                        <td><i class="fas fa-times cross-icon"></i></td>
+                        <td><i class="fas fa-times cross-icon"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Ver equipo de trabajo</td>
+                        <td><i class="fas fa-check check-icon"></i></td>
+                        <td><i class="fas fa-check check-icon"></i></td>
+                        <td><i class="fas fa-check check-icon"></i></td>
+                        <td><i class="fas fa-times cross-icon"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Solicitar nuevo colaborador</td>
+                        <td><i class="fas fa-check check-icon"></i></td>
+                        <td><i class="fas fa-check check-icon"></i></td>
+                        <td><i class="fas fa-check check-icon"></i></td>
+                        <td><i class="fas fa-times cross-icon"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Procesar solicitudes de vacaciones</td>
+                        <td><i class="fas fa-check check-icon"></i></td>
+                        <td><i class="fas fa-check check-icon"></i></td>
+                        <td><i class="fas fa-check check-icon"></i></td>
+                        <td><i class="fas fa-times cross-icon"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Solicitar vacaciones</td>
+                        <td><i class="fas fa-check check-icon"></i></td>
+                        <td><i class="fas fa-check check-icon"></i></td>
+                        <td><i class="fas fa-check check-icon"></i></td>
+                        <td><i class="fas fa-check check-icon"></i></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Funcionalidades Principales -->
+        <div class="section">
+            <h2><i class="fas fa-star"></i> Funcionalidades Principales</h2>
+
+            <h3><i class="fas fa-users"></i> Gestión de Empleados (RRHH)</h3>
+            <ul class="feature-list">
+                <li>Lista completa de empleados con filtros y búsqueda</li>
+                <li>Edición de información personal y laboral</li>
+                <li>Validación de DNI con formato de 8 dígitos</li>
+                <li>Gestión de roles y permisos</li>
+                <li>Proceso de offboarding</li>
+                <li>Control de estado de usuarios</li>
+            </ul>
+
+            <h3><i class="fas fa-calendar-alt"></i> Sistema de Vacaciones</h3>
+            <ul class="feature-list">
+                <li>Solicitud de vacaciones con selección de fechas</li>
+                <li>Cálculo automático de días laborables</li>
+                <li>Validación de días disponibles</li>
+                <li>Flujo de aprobación por manager</li>
+                <li>Control de períodos vacacionales</li>
+                <li>Historial completo de solicitudes</li>
+            </ul>
+
+            <h3><i class="fas fa-user-plus"></i> Solicitudes de Nuevo Colaborador</h3>
+            <ul class="feature-list">
+                <li>Creación de solicitudes por jefes y managers</li>
+                <li>Definición de perfil del puesto</li>
+                <li>Flujo de aprobación por RRHH</li>
+                <li>Creación automática de usuario y empleado al aprobar</li>
+                <li>Generación de credenciales temporales seguras</li>
+                <li>Seguimiento de estado</li>
+                <li>Historial de solicitudes</li>
+            </ul>
+
+            <h3><i class="fas fa-chart-bar"></i> Dashboards Personalizados</h3>
+            <ul class="feature-list">
+                <li>Dashboard principal con información personal</li>
+                <li>Dashboard de gestión para managers y jefes</li>
+                <li>Dashboard de RRHH con controles administrativos</li>
+                <li>Estadísticas y métricas en tiempo real</li>
+                <li>Acciones rápidas por rol</li>
+            </ul>
+        </div>
+
+        <!-- Cronología de Desarrollo -->
+        <div class="section">
+            <h2><i class="fas fa-clock"></i> Cronología de Desarrollo</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <h4><span class="status-badge status-completed">Completado</span> Implementación de Campo DNI</h4>
+                    <p>Se agregó validación de DNI con formato de 8 dígitos y migración de base de datos.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4><span class="status-badge status-completed">Completado</span> Sistema de Gestión de Empleados</h4>
+                    <p>CRUD completo para empleados con filtros, búsqueda y funcionalidades de offboarding.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4><span class="status-badge status-enhanced">Mejorado</span> Mejoras en Dashboard UI</h4>
+                    <p>Implementación de action cards con diseño moderno y responsive.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4><span class="status-badge status-new">Nuevo</span> Extensión de Permisos a Jefes</h4>
+                    <p>Los jefes ahora pueden gestionar equipos y solicitar nuevos colaboradores.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4><span class="status-badge status-new">Nuevo</span> Vista de Lista para Equipos</h4>
+                    <p>Interfaz de tabla responsive para mejor gestión de miembros del equipo.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4><span class="status-badge status-new">Nuevo</span> Creación Automática de Empleados</h4>
+                    <p>Cuando RRHH aprueba una solicitud de nuevo colaborador, se crea automáticamente el usuario y empleado con credenciales temporales.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Arquitectura del Sistema -->
+        <div class="section">
+            <h2><i class="fas fa-puzzle-piece"></i> Arquitectura del Sistema</h2>
+
+            <h3><i class="fas fa-database"></i> Modelos de Datos</h3>
+            <div class="code-block">
+class Empleado(models.Model):
+    # Información personal
+    nombre, apellido, dni, email
+    # Información laboral  
+    puesto, area, gerencia, jerarquia
+    # Relaciones
+    user, manager
+    # Permisos
+    es_rrhh, puede_gestionar_equipo
+    # Vacaciones
+    dias_vacaciones_disponibles
+            </div>
+
+            <h3><i class="fas fa-route"></i> Rutas Principales</h3>
+            <div class="url-example">/ - Inicio de empleado</div>
+            <div class="url-example">/manager/ - Dashboard de gestión</div>
+            <div class="url-example">/manager/equipo/ - Vista de equipo</div>
+            <div class="url-example">/manager/empleado/{id}/perfil/ - Perfil de empleado</div>
+            <div class="url-example">/manager/empleado/{id}/solicitudes/ - Solicitudes de empleado</div>
+            <div class="url-example">/rrhh/ - Dashboard de RRHH</div>
+            <div class="url-example">/rrhh/empleados/ - Gestión de empleados</div>
+            <div class="url-example">/vacaciones/ - Sistema de vacaciones</div>
+
+            <h3><i class="fas fa-eye"></i> Vistas Principales</h3>
+            <ul class="feature-list">
+                <li><strong>inicio_empleado</strong>: Dashboard principal con información personal</li>
+                <li><strong>manager_dashboard</strong>: Panel de control para gestión de equipos</li>
+                <li><strong>equipo_manager</strong>: Lista de miembros del equipo</li>
+                <li><strong>rrhh_dashboard</strong>: Panel administrativo de RRHH</li>
+                <li><strong>rrhh_lista_empleados</strong>: Gestión completa de empleados</li>
+                <li><strong>ver_perfil_empleado</strong>: Vista de perfil específico</li>
+                <li><strong>ver_solicitudes_empleado</strong>: Solicitudes de empleado específico</li>
+            </ul>
+        </div>
+
+        <!-- Características Técnicas -->
+        <div class="section">
+            <h2><i class="fas fa-cogs"></i> Características Técnicas</h2>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4><i class="fas fa-mobile-alt"></i> Responsive Design</h4>
+                    <p>Todas las interfaces se adaptan perfectamente a dispositivos móviles y tablets.</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-shield-alt"></i> Seguridad</h4>
+                    <p>Sistema robusto de autenticación, autorización y validación de datos.</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-search"></i> Filtros y Búsqueda</h4>
+                    <p>Capacidades avanzadas de filtrado y búsqueda en todas las listas.</p>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-check-circle"></i> Validaciones</h4>
+                    <p>Validaciones tanto en frontend como backend para integridad de datos.</p>
+                </div>
+            </div>
+
+            <h3><i class="fas fa-palette"></i> Diseño y UX</h3>
+            <ul class="feature-list">
+                <li>Gradientes modernos y paleta de colores profesional</li>
+                <li>Iconografía consistente con Font Awesome</li>
+                <li>Animaciones suaves y transiciones elegantes</li>
+                <li>Feedback visual claro para todas las acciones</li>
+                <li>Navegación intuitiva y breadcrumbs</li>
+                <li>Estados de carga y mensajes informativos</li>
+            </ul>
+        </div>
+
+        <!-- Proceso de Creación Automática -->
+        <div class="section">
+            <h2><i class="fas fa-magic"></i> Creación Automática de Empleados</h2>
+            <p>Una de las características más innovadoras del sistema es la creación automática de empleados cuando RRHH aprueba solicitudes de nuevos colaboradores.</p>
+
+            <h3><i class="fas fa-cogs"></i> Proceso Automatizado</h3>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <h4>1. Aprobación por RRHH</h4>
+                    <p>RRHH revisa y aprueba la solicitud de nuevo colaborador con todos los datos requeridos.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>2. Creación de Usuario Django</h4>
+                    <p>Se crea automáticamente un usuario en el sistema con username formato nombre.apellido (ej: juan.perez).</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>3. Generación de Contraseña Temporal</h4>
+                    <p>Se genera una contraseña segura de 12 caracteres aleatorios para el primer acceso.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>4. Creación de Empleado</h4>
+                    <p>Se crea el perfil de empleado con todos los datos de la solicitud, incluyendo jerarquía y manager asignado.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>5. Entrega de Credenciales</h4>
+                    <p>Se presenta una interfaz especial con las credenciales para que RRHH las entregue al nuevo empleado.</p>
+                </div>
+            </div>
+
+            <h3><i class="fas fa-shield-alt"></i> Seguridad y Validaciones</h3>
+            <ul class="feature-list">
+                <li>Verificación de DNI único antes de crear el usuario</li>
+                <li>Contraseñas temporales generadas con algoritmos seguros</li>
+                <li>Username único en formato nombre.apellido con normalización de acentos</li>
+                <li>Resolución automática de conflictos de username agregando números secuenciales</li>
+                <li>Mapeo automático de denominación de puesto a jerarquía organizacional</li>
+                <li>Asignación inteligente de gerencia basada en el área</li>
+                <li>Transacciones atómicas para garantizar consistencia de datos</li>
+                <li>Manejo de errores con rollback automático</li>
+            </ul>
+
+            <h3><i class="fas fa-user-cog"></i> Configuración Automática</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4><i class="fas fa-id-card"></i> Datos Personales</h4>
+                    <ul class="feature-list">
+                        <li>Nombre y apellido</li>
+                        <li>DNI y email</li>
+                        <li>Fecha de ingreso</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-briefcase"></i> Datos Laborales</h4>
+                    <ul class="feature-list">
+                        <li>Puesto y área asignada</li>
+                        <li>Jerarquía organizacional</li>
+                        <li>Manager responsable</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-calendar"></i> Configuración Inicial</h4>
+                    <ul class="feature-list">
+                        <li>30 días de vacaciones disponibles</li>
+                        <li>Estado activo por defecto</li>
+                        <li>Permisos básicos de empleado</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Casos de Uso -->
+        <div class="section">
+            <h2><i class="fas fa-tasks"></i> Casos de Uso Principales</h2>
+
+            <h3><i class="fas fa-user-tie"></i> Como RRHH</h3>
+            <ul class="feature-list">
+                <li>Gestionar información completa de todos los empleados</li>
+                <li>Procesar solicitudes de vacaciones y nuevos colaboradores</li>
+                <li>Controlar períodos vacacionales y días disponibles</li>
+                <li>Generar reportes e historiales</li>
+                <li>Configurar notificaciones del sistema</li>
+            </ul>
+
+            <h3><i class="fas fa-user-friends"></i> Como Manager/Jefe</h3>
+            <ul class="feature-list">
+                <li>Ver y gestionar mi equipo de trabajo</li>
+                <li>Aprobar/rechazar solicitudes de vacaciones</li>
+                <li>Solicitar nuevos colaboradores para el equipo</li>
+                <li>Revisar perfiles y solicitudes de mi equipo</li>
+                <li>Acceder a estadísticas del equipo</li>
+            </ul>
+
+            <h3><i class="fas fa-user"></i> Como Empleado</h3>
+            <ul class="feature-list">
+                <li>Solicitar vacaciones con cálculo automático de días</li>
+                <li>Ver historial de mis solicitudes</li>
+                <li>Consultar información de mi perfil</li>
+                <li>Ver días de vacaciones disponibles</li>
+                <li>Cancelar solicitudes pendientes</li>
+            </ul>
+        </div>
+
+        <!-- Beneficios del Sistema -->
+        <div class="section">
+            <h2><i class="fas fa-trophy"></i> Beneficios del Sistema</h2>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4><i class="fas fa-clock"></i> Eficiencia Operativa</h4>
+                    <ul class="feature-list">
+                        <li>Automatización de procesos de RRHH</li>
+                        <li>Reducción de tiempo en tareas administrativas</li>
+                        <li>Flujos de trabajo optimizados</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-chart-line"></i> Control y Transparencia</h4>
+                    <ul class="feature-list">
+                        <li>Trazabilidad completa de solicitudes</li>
+                        <li>Visibilidad de estados y procesos</li>
+                        <li>Reportes y métricas en tiempo real</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-users"></i> Mejora en Comunicación</h4>
+                    <ul class="feature-list">
+                        <li>Centralización de información</li>
+                        <li>Notificaciones automáticas</li>
+                        <li>Comentarios y feedback en solicitudes</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4><i class="fas fa-mobile-alt"></i> Accesibilidad</h4>
+                    <ul class="feature-list">
+                        <li>Acceso desde cualquier dispositivo</li>
+                        <li>Interfaz intuitiva y moderna</li>
+                        <li>Disponibilidad 24/7</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="section" style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h2><i class="fas fa-rocket"></i> Sistema RRHH - Versión 1.0</h2>
+            <p>Desarrollado con Django 5.2.5 • Septiembre 2025</p>
+            <p><i class="fas fa-code"></i> Código limpio • <i class="fas fa-shield-alt"></i> Seguro • <i class="fas fa-mobile-alt"></i> Responsive • <i class="fas fa-heart"></i> Hecho con cariño</p>
+        </div>
+    </div>
+</body>
+</html>

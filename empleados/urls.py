@@ -27,6 +27,9 @@ urlpatterns = [
     path('manager/', views.manager_dashboard, name='manager_dashboard'),
     path('manager/equipo/', views.equipo_manager, name='equipo_manager'),
     path('manager/solicitud/<int:solicitud_id>/procesar/', views.procesar_solicitud_manager, name='procesar_solicitud_manager'),
+    path('manager/empleado/<int:empleado_id>/perfil/', views.ver_perfil_empleado, name='ver_perfil_empleado'),
+    path('manager/empleado/<int:empleado_id>/solicitudes/', views.ver_solicitudes_empleado, name='ver_solicitudes_empleado'),
+    path('manager/empleado/<int:empleado_id>/solicitud/<int:solicitud_id>/', views.detalle_solicitud_empleado, name='detalle_solicitud_empleado'),
     
     # Solicitud de Nuevo Colaborador (crean Jefes/Managers)
     path('colaboradores/nuevo/', views.nueva_solicitud_nuevo_colaborador, name='nueva_solicitud_nuevo_colaborador'),
@@ -42,6 +45,10 @@ urlpatterns = [
     # Control de vacaciones RRHH
     path('rrhh/control-vacaciones/', views.rrhh_control_vacaciones, name='rrhh_control_vacaciones'),
     path('rrhh/notificar-manager/<int:empleado_id>/', views.rrhh_notificar_manager_vacaciones, name='rrhh_notificar_manager_vacaciones'),
+    # Gestión de empleados RRHH
+    path('rrhh/empleados/', views.rrhh_lista_empleados, name='rrhh_lista_empleados'),
+    path('rrhh/empleados/<int:empleado_id>/editar/', views.rrhh_editar_empleado, name='rrhh_editar_empleado'),
+    path('rrhh/empleados/<int:empleado_id>/offboarding/', views.rrhh_offboarding_empleado, name='rrhh_offboarding_empleado'),
     # Configuración de notificaciones
     path('rrhh/configurar-notificaciones/', views_notificaciones.configurar_notificaciones, name='configurar_notificaciones'),
 ]

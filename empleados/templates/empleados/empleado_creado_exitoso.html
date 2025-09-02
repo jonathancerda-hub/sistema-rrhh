@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Empleado Creado Exitosamente</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .page-wrapper {
+      max-width: 900px;
+      margin: 32px auto;
+      padding: 0 16px;
+    }
+    .card-ui {
+      background: rgba(255,255,255,.98);
+      border: 2px solid rgba(255,255,255,.3);
+      box-shadow: 0 20px 40px rgba(0,0,0,.15);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .card-header {
+      background: linear-gradient(135deg, #48bb78, #38a169);
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+    .card-header h1 {
+      font-size: 1.8rem;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .card-body {
+      padding: 32px;
+    }
+    .success-icon {
+      font-size: 4rem;
+      color: #48bb78;
+      text-align: center;
+      margin-bottom: 24px;
+      animation: checkmark 0.6s ease-in-out;
+    }
+    @keyframes checkmark {
+      0% { transform: scale(0); opacity: 0; }
+      50% { transform: scale(1.2); opacity: 0.8; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .alert {
+      border-radius: 12px;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      animation: slideInDown 0.5s ease-out;
+    }
+    @keyframes slideInDown {
+      0% { transform: translateY(-20px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    .credentials-section {
+      background: linear-gradient(135deg, #f7fafc, #edf2f7);
+      border-radius: 15px;
+      padding: 24px;
+      margin: 24px 0;
+      border-left: 5px solid #667eea;
+    }
+    .credential-item {
+      background: white;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    }
+    .credential-label {
+      font-weight: 600;
+      color: #4a5568;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .credential-value {
+      font-family: 'Courier New', monospace;
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .credential-value:hover {
+      background: #4a5568;
+      transform: scale(1.02);
+    }
+    .employee-info {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+    }
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .info-label {
+      font-weight: 600;
+      color: #4a5568;
+    }
+    .info-value {
+      color: #2d3748;
+    }
+    .warning-box {
+      background: linear-gradient(135deg, #fed7d7, #feb2b2);
+      border: 2px solid #fc8181;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 24px 0;
+      text-align: center;
+    }
+    .warning-icon {
+      font-size: 2rem;
+      color: #e53e3e;
+      margin-bottom: 12px;
+    }
+    .warning-text {
+      color: #742a2a;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .btn-action {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border: none;
+      border-radius: 10px;
+      padding: 12px 24px;
+      color: white;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+    .btn-action:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+      color: white;
+    }
+    .actions-section {
+      text-align: center;
+      margin-top: 32px;
+    }
+    .copy-btn {
+      background: #4299e1;
+      border: none;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    .progress-indicator {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #e6fffa;
+      border-radius: 8px;
+      border: 1px solid #81e6d9;
+    }
+    .step-completed {
+      background: #48bb78;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrapper">
+    <div class="card-ui">
+      <div class="card-header">
+        <h1>
+          <i class="fas fa-check-circle"></i>
+          Empleado Creado Exitosamente
+        </h1>
+      </div>
+      
+      <div class="card-body">
+        <!-- Mensajes de Estado -->
+        {% if mensaje_exito %}
+        <div class="alert alert-success d-flex align-items-center mb-3" role="alert">
+          <i class="fas fa-check-circle me-2"></i>
+          <strong>{{ mensaje_exito }}</strong>
+        </div>
+        {% endif %}
+        
+        {% if mensaje_info %}
+        <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
+          <i class="fas fa-info-circle me-2"></i>
+          {{ mensaje_info }}
+        </div>
+        {% endif %}
+        
+        {% if mensaje_warning %}
+        <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>{{ mensaje_warning }}</strong>
+        </div>
+        {% endif %}
+        
+        <!-- Indicador de Progreso -->
+        <div class="progress-indicator">
+          <span class="step-completed">✓ Solicitud Procesada</span>
+          <span class="step-completed">✓ Usuario Creado</span>
+          <span class="step-completed">✓ Empleado Registrado</span>
+          <span class="step-completed">✓ Credenciales Generadas</span>
+        </div>
+        
+        <div class="success-icon">
+          <i class="fas fa-user-check"></i>
+        </div>
+        
+        <div class="employee-info">
+          <h3 class="mb-3">
+            <i class="fas fa-user"></i>
+            Información del Nuevo Empleado
+          </h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Nombre:</span>
+              <span class="info-value">{{ nuevo_empleado.nombre }} {{ nuevo_empleado.apellido }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">DNI:</span>
+              <span class="info-value">{{ nuevo_empleado.dni }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Email:</span>
+              <span class="info-value">{{ nuevo_empleado.email }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Puesto:</span>
+              <span class="info-value">{{ nuevo_empleado.puesto }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Área:</span>
+              <span class="info-value">{{ nuevo_empleado.area }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Jerarquía:</span>
+              <span class="info-value">{{ nuevo_empleado.get_jerarquia_display }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Manager:</span>
+              <span class="info-value">{{ nuevo_empleado.manager.nombre }} {{ nuevo_empleado.manager.apellido }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Fecha de Ingreso:</span>
+              <span class="info-value">{{ nuevo_empleado.fecha_ingreso }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="credentials-section">
+          <h3 class="mb-3">
+            <i class="fas fa-key"></i>
+            Credenciales de Acceso
+          </h3>
+          
+          <div class="credential-item">
+            <span class="credential-label">
+              <i class="fas fa-user"></i>
+              Nombre de Usuario:
+            </span>
+            <span class="credential-value" onclick="copyToClipboard('{{ username }}')">
+              {{ username }}
+              <button class="copy-btn" title="Copiar">
+                <i class="fas fa-copy"></i>
+              </button>
+            </span>
+          </div>
+          
+          <div class="credential-item">
+            <span class="credential-label">
+              <i class="fas fa-lock"></i>
+              Contraseña Temporal:
+            </span>
+            <span class="credential-value" onclick="copyToClipboard('{{ password_temporal }}')">
+              {{ password_temporal }}
+              <button class="copy-btn" title="Copiar">
+                <i class="fas fa-copy"></i>
+              </button>
+            </span>
+          </div>
+        </div>
+
+        <div class="warning-box">
+          <div class="warning-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="warning-text">
+            IMPORTANTE: Guarda estas credenciales de forma segura y entrégalas al nuevo empleado.
+            <br>
+            La contraseña es temporal y debe ser cambiada en el primer acceso.
+          </div>
+        </div>
+
+        <div class="actions-section">
+          <a href="{% url 'lista_solicitudes_nuevo_colaborador' %}" class="btn-action">
+            <i class="fas fa-list"></i>
+            Ver Todas las Solicitudes
+          </a>
+          
+          <a href="{% url 'rrhh_dashboard' %}" class="btn-action">
+            <i class="fas fa-home"></i>
+            Dashboard RRHH
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(function() {
+        // Mostrar feedback visual
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: #48bb78;
+          color: white;
+          padding: 12px 20px;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          z-index: 9999;
+          font-weight: 600;
+        `;
+        notification.innerHTML = '<i class="fas fa-check"></i> Copiado al portapapeles';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 2000);
+      }).catch(function(err) {
+        console.error('Error al copiar: ', err);
+      });
+    }
+
+    // Mostrar las credenciales con animación
+    document.addEventListener('DOMContentLoaded', function() {
+      const credentialItems = document.querySelectorAll('.credential-item');
+      credentialItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+          item.style.transition = 'all 0.5s ease';
+          item.style.opacity = '1';
+          item.style.transform = 'translateY(0)';
+        }, index * 200);
+      });
+
+      // Auto-ocultar alertas después de 10 segundos
+      const alerts = document.querySelectorAll('.alert');
+      alerts.forEach(alert => {
+        setTimeout(() => {
+          alert.style.transition = 'opacity 0.5s ease';
+          alert.style.opacity = '0.7';
+        }, 10000);
+      });
+    });
+  </script>
+</body>
+</html>
