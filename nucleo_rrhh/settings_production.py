@@ -22,12 +22,12 @@ ALLOWED_HOSTS = [
     '*'  # Temporal para debugging (quitar en producción final)
 ]
 
-# Database configuration for Render PostgreSQL
+# Database configuration for Supabase PostgreSQL
 # La variable DATABASE_URL debe estar configurada en Render.com
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if DATABASE_URL:
-    # Usar PostgreSQL si DATABASE_URL está disponible
+    # Usar PostgreSQL (Supabase o Render)
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
