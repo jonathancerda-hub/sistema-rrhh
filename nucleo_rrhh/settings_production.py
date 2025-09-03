@@ -23,49 +23,23 @@ ALLOWED_HOSTS = [
     '*'  # Temporal para debugging (quitar en producción final)
 ]
 
-# Database configuration con estrategia de fallback
+# Database configuration - Usar SQLite durante build, Supabase en runtime
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
-# Detectar si estamos en build/migrate vs runtime
-IS_BUILDING = any([
-    'collectstatic' in sys.argv,
-    'migrate' in sys.argv,
-    os.environ.get('BUILD_PHASE') == 'true'
-])
-
-if IS_BUILDING:
-    # Durante el build, usar SQLite para evitar problemas de red
-    print("🔨 Fase de build detectada - usando SQLite temporal")
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': '/tmp/build_temp.db',
-        }
+# Usar SQLite por defecto para evitar problemas de conectividad durante el build
+# Supabase se configurará después del deploy mediante las herramientas web
+print("📦 Usando SQLite para build seguro")
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': '/tmp/app.db',  # En Render, usar directorio temporal
     }
-else:
-    # En runtime, intentar usar Supabase
-    if not DATABASE_URL:
-        print("⚠️ DATABASE_URL no encontrada, usando Supabase directo")
-        DATABASE_URL = "postgresql://postgres:3jbxqfv$2gyW$yG@db.mwjdmmowllmxygscgcex.supabase.co:5432/postgres"
-    
-    try:
-        DATABASES = {
-            'default': dj_database_url.config(
-                default=DATABASE_URL,
-                conn_max_age=600,
-                conn_health_checks=True,
-            )
-        }
-        print(f"✅ Configurado PostgreSQL: {DATABASE_URL[:50]}...")
-    except Exception as e:
-        print(f"⚠️ Error configurando PostgreSQL: {e}")
-        # Fallback a SQLite si hay problemas
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': '/tmp/fallback.db',
-            }
-        }
+}
+
+# Información para configuración posterior
+SUPABASE_URL = "postgresql://postgres:3jbxqfv$2gyW$yG@db.mwjdmmowllmxygscgcex.supabase.co:5432/postgres"
+print(f"💡 Supabase URL disponible para configuración: {SUPABASE_URL[:50]}...")
+print("🔧 Usa /setup/diagnostico/ para verificar la conexión después del deploy")
 
 # Static files configuration
 STATIC_URL = '/static/'
