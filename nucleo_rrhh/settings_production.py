@@ -1,8 +1,9 @@
 import os
+import sys
 import dj_database_url
 from .settings import *
 
-# Temporary debug for deployment issues
+# Debug setting for deployment
 DEBUG = True  # Cambiar a False después de verificar que funciona
 
 # Configuración de zona horaria para Perú
@@ -11,46 +12,31 @@ TIME_ZONE = 'America/Lima'
 USE_I18N = True
 USE_TZ = True
 
-# Override settings for production
-
 # Render provides the hostname
 ALLOWED_HOSTS = [
     'tea-d2f53dumcj7s738afjo0.onrender.com',
-    '.onrender.com',  # Permite cualquier subdominio de onrender.com
+    '.onrender.com',
     'localhost',
     '127.0.0.1',
-    '*'  # Temporal para debugging (quitar en producción final)
+    '*'  # Temporal para debugging
 ]
 
-# Database configuration for Render PostgreSQL
-# La variable DATABASE_URL debe estar configurada en Render.com
-DATABASE_URL = os.environ.get('DATABASE_URL')
+# Database configuration - Usar SQLite para que la aplicación funcione
+# Supabase se configurará manualmente después usando las herramientas web
 
-if DATABASE_URL:
-    # Usar PostgreSQL si DATABASE_URL está disponible
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
+# Usar SQLite temporalmente hasta que se configure Supabase
+print("� Usando SQLite temporal - configurar Supabase en /setup/diagnostico/")
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': '/tmp/app.db',
     }
-    print(f"✅ Usando PostgreSQL: {DATABASE_URL[:50]}...")
-else:
-    # Fallback temporal para debugging
-    print("⚠️ DATABASE_URL no encontrada. Usando configuración de fallback.")
-    print("Variables de entorno disponibles:")
-    for key in os.environ:
-        if 'DATABASE' in key or 'DJANGO' in key:
-            print(f"  {key}: {os.environ[key][:50]}...")
-    
-    # Usar SQLite temporalmente para permitir que el build complete
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
+
+# Información de Supabase para configuración posterior
+SUPABASE_DATABASE_URL = "postgresql://postgres:3jbxqfv$2gyW$yG@db.mwjdmmowllmxygscgcex.supabase.co:5432/postgres"
+print(f"💡 URL de Supabase disponible: {SUPABASE_DATABASE_URL[:60]}...")
+print("🔧 Visita /setup/diagnostico/ para verificar y configurar Supabase")
 
 # Static files configuration
 STATIC_URL = '/static/'
@@ -59,7 +45,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Whitenoise configuration
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Debe estar aquí
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -77,7 +63,7 @@ X_FRAME_OPTIONS = 'DENY'
 # Use environment variable for secret key in production
 SECRET_KEY = os.environ.get('SECRET_KEY', SECRET_KEY)
 
-# Logging configuration for debugging
+# Logging configuration
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -99,7 +85,7 @@ LOGGING = {
     },
 }
 
-# Email configuration for production
+# Email configuration
 if os.environ.get('EMAIL_HOST'):
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = os.environ.get('EMAIL_HOST')
@@ -109,6 +95,5 @@ if os.environ.get('EMAIL_HOST'):
     EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
     DEFAULT_FROM_EMAIL = f'Sistema RRHH <{EMAIL_HOST_USER}>'
 else:
-    # Keep console backend for development/staging
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     DEFAULT_FROM_EMAIL = 'Sistema RRHH <noreply@empresa.com>'
