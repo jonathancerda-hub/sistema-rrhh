@@ -21,19 +21,22 @@ ALLOWED_HOSTS = [
     '*'  # Temporal para debugging
 ]
 
-# Database configuration - Supabase PostgreSQL
-SUPABASE_DATABASE_URL = "postgresql://postgres:3jbxqfv$2gyW$yG@db.mwjdmmowllmxygscgcex.supabase.co:5432/postgres"
+# Database configuration - Usar SQLite para que la aplicación funcione
+# Supabase se configurará manualmente después usando las herramientas web
 
+# Usar SQLite temporalmente hasta que se configure Supabase
+print("� Usando SQLite temporal - configurar Supabase en /setup/diagnostico/")
 DATABASES = {
-    'default': dj_database_url.config(
-        default=SUPABASE_DATABASE_URL,
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': '/tmp/app.db',
+    }
 }
 
-print(f"🐘 Usando PostgreSQL (Supabase): {SUPABASE_DATABASE_URL[:60]}...")
-print("✅ Base de datos configurada para producción")
+# Información de Supabase para configuración posterior
+SUPABASE_DATABASE_URL = "postgresql://postgres:3jbxqfv$2gyW$yG@db.mwjdmmowllmxygscgcex.supabase.co:5432/postgres"
+print(f"💡 URL de Supabase disponible: {SUPABASE_DATABASE_URL[:60]}...")
+print("🔧 Visita /setup/diagnostico/ para verificar y configurar Supabase")
 
 # Static files configuration
 STATIC_URL = '/static/'

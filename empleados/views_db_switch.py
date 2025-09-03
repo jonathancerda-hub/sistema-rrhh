@@ -12,6 +12,50 @@ def configurar_bd(request):
     return render(request, 'empleados/configurar_bd.html')
 
 @csrf_exempt
+def cambiar_a_supabase(request):
+    """Cambiar la configuración de base de datos a Supabase dinámicamente"""
+    if request.method == 'POST':
+        try:
+            # Configuración manual de PostgreSQL para Supabase
+            new_db_config = {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': 'postgres',
+                'USER': 'postgres',
+                'PASSWORD': '3jbxqfv$2gyW$yG',
+                'HOST': 'db.mwjdmmowllmxygscgcex.supabase.co',
+                'PORT': '5432',
+                'CONN_MAX_AGE': 600,
+                'CONN_HEALTH_CHECKS': True,
+            }
+            
+            # Cerrar conexión actual
+            connection.close()
+            
+            # Actualizar configuración
+            settings.DATABASES['default'] = new_db_config
+            
+            # Probar nueva conexión
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT version();")
+                version = cursor.fetchone()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Conectado exitosamente a Supabase',
+                'database': 'PostgreSQL (Supabase)',
+                'version': version[0] if version else 'Unknown'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e),
+                'message': 'Error conectando a Supabase. Puede ser un problema de conectividad de red.'
+            })
+    
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+@csrf_exempt
 def ejecutar_migraciones(request):
     """Ejecutar migraciones en Supabase"""
     if request.method == 'POST':

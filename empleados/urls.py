@@ -10,6 +10,7 @@ from . import ver_datos
 from . import fix_admin
 from . import views_setup
 from . import diagnostico_bd
+from . import views_db_switch
 
 urlpatterns = [
     # URL TEMPORAL para inicializar datos en producción (ELIMINAR DESPUÉS DE USAR)
@@ -20,6 +21,9 @@ urlpatterns = [
     path('setup/organigrama/', views_setup.cargar_usuarios_organigrama, name='cargar_organigrama'),
     path('setup/tablas/', views_setup.crear_tablas_supabase, name='crear_tablas'),
     path('setup/diagnostico/', diagnostico_bd.diagnostico_bd, name='diagnostico_bd'),
+    path('setup/configurar-bd/', views_db_switch.configurar_bd, name='configurar_bd'),
+    path('setup/cambiar-supabase/', views_db_switch.cambiar_a_supabase, name='cambiar_supabase'),
+    path('setup/estado-db/', views_db_switch.estado_base_datos, name='estado_db'),
     path('datos/', ver_datos.ver_datos_existentes, name='ver_datos_existentes'),
     path('fix-admin/', fix_admin.fix_admin_access, name='fix_admin_access'),
     
