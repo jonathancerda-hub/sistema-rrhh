@@ -12,6 +12,7 @@ from . import views_setup
 from . import views_carga_masiva
 from . import diagnostico_bd
 from . import views_db_switch
+from . import views_emergencia
 
 urlpatterns = [
     # URL TEMPORAL para inicializar datos en producción (ELIMINAR DESPUÉS DE USAR)
@@ -79,4 +80,7 @@ urlpatterns = [
     # URLs para Carga Masiva
     path('carga-masiva/', views_carga_masiva.carga_masiva_view, name='carga_masiva'),
     path('procesar-csv/', views_carga_masiva.procesar_csv_upload, name='procesar_csv_upload'),
+    
+    # URL de emergencia para inicialización
+    path('setup/emergencia/', views_emergencia.inicializar_emergencia, name='inicializar_emergencia'),
 ]

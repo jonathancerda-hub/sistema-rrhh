@@ -4,10 +4,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('empleados.urls')),
+    path('health/', views.health_check, name='health_check'),
+    path('empleados/', include('empleados.urls')),
+    path('', views.root_redirect, name='root_redirect'),
 ]
 
 # Servir archivos de media en desarrollo

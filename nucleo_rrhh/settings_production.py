@@ -25,11 +25,14 @@ ALLOWED_HOSTS = [
 # Supabase se configurará manualmente después usando las herramientas web
 
 # Usar SQLite temporalmente hasta que se configure Supabase
-print("� Usando SQLite temporal - configurar Supabase en /setup/diagnostico/")
+print("🔧 Usando SQLite temporal - visita / para inicializar o /empleados/setup/emergencia/")
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': '/tmp/app.db',
+        'OPTIONS': {
+            'timeout': 20,
+        }
     }
 }
 
