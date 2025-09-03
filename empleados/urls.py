@@ -9,6 +9,7 @@ from . import crear_superusuario
 from . import ver_datos
 from . import fix_admin
 from . import views_setup
+from . import diagnostico_bd
 
 urlpatterns = [
     # URL TEMPORAL para inicializar datos en producción (ELIMINAR DESPUÉS DE USAR)
@@ -18,6 +19,7 @@ urlpatterns = [
     path('setup/superuser/', crear_superusuario.crear_superusuario, name='crear_superusuario'),
     path('setup/organigrama/', views_setup.cargar_usuarios_organigrama, name='cargar_organigrama'),
     path('setup/tablas/', views_setup.crear_tablas_supabase, name='crear_tablas'),
+    path('setup/diagnostico/', diagnostico_bd.diagnostico_bd, name='diagnostico_bd'),
     path('datos/', ver_datos.ver_datos_existentes, name='ver_datos_existentes'),
     path('fix-admin/', fix_admin.fix_admin_access, name='fix_admin_access'),
     
