@@ -3,9 +3,12 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import user_passes_test
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
+from django.core.management import call_command
+from django.db import connection
 from empleados.models import Empleado
 from datetime import datetime
 import json
+import io
 
 def es_superuser_o_sin_usuarios(user):
     """Permite acceso si es superuser o si no hay usuarios en el sistema"""
@@ -331,4 +334,56 @@ def cargar_usuarios_organigrama(request):
             'resultado': resultado
         })
 
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+@csrf_exempt
+def crear_tablas_supabase(request):
+    """Vista para crear manualmente las tablas en Supabase si no se crearon automáticamente"""
+    
+    if request.method == 'GET':
+        # Mostrar página de confirmación
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'")
+                tabla_count = cursor.fetchone()[0]
+        except:
+            tabla_count = 0
+            
+        context = {
+            'tablas_existentes': tabla_count,
+            'es_supabase': 'supabase.co' in str(connection.settings_dict.get('HOST', ''))
+        }
+        return render(request, 'empleados/crear_tablas.html', context)
+    
+    elif request.method == 'POST':
+        resultado = {
+            'success': False,
+            'mensaje': '',
+            'tablas_creadas': 0,
+            'errores': []
+        }
+        
+        try:
+            # Capturar output de las migraciones
+            output = io.StringIO()
+            
+            # Ejecutar migraciones
+            call_command('migrate', verbosity=2, stdout=output)
+            
+            # Contar tablas después de migrar
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'")
+                tabla_count = cursor.fetchone()[0]
+            
+            resultado['success'] = True
+            resultado['mensaje'] = f'Migraciones ejecutadas correctamente. {tabla_count} tablas en la base de datos.'
+            resultado['tablas_creadas'] = tabla_count
+            resultado['output'] = output.getvalue()
+            
+        except Exception as e:
+            resultado['errores'].append(str(e))
+            resultado['mensaje'] = f'Error ejecutando migraciones: {str(e)}'
+        
+        return JsonResponse(resultado)
+    
     return JsonResponse({'error': 'Método no permitido'}, status=405)

@@ -17,6 +17,7 @@ urlpatterns = [
     path('setup/admin/', setup_admin.hacer_admin, name='hacer_admin'),
     path('setup/superuser/', crear_superusuario.crear_superusuario, name='crear_superusuario'),
     path('setup/organigrama/', views_setup.cargar_usuarios_organigrama, name='cargar_organigrama'),
+    path('setup/tablas/', views_setup.crear_tablas_supabase, name='crear_tablas'),
     path('datos/', ver_datos.ver_datos_existentes, name='ver_datos_existentes'),
     path('fix-admin/', fix_admin.fix_admin_access, name='fix_admin_access'),
     
