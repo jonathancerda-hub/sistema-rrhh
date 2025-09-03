@@ -1,0 +1,20 @@
+nombre,apellido,dni,email,puesto,gerencia,es_manager,es_rrhh,fecha_contratacion
+José,Garcia,00000001,jose.garcia@agrovetmarket.com,Director Finanzas y T.I,Gerencia Finanzas y T.I,si,no,02-10-2001
+Ena,Fernández,00000002,ena.fernandez@agrovetmarket.com,Gerente Transformación Digital,Gerencia Finanzas y T.I,si,no,03-10-2001
+Teodoro,Balarezo,00000004,teodoro.balarezo@agrovetmarket.com,Jefe de Proyectos TI,Gerencia Finanzas y T.I,si,no,05-10-2001
+Juana,Lovaton,00000005,juana.lovaton@agrovetmarket.com,Jefe de Aplicaciones,Gerencia Finanzas y T.I,si,no,06-10-2001
+José,Pariasca,00000006,jose.pariasca@agrovetmarket.com,Jefe Finanzas,Gerencia Finanzas y T.I,si,no,07-10-2001
+Pamela,Torres,00000007,pamela.torres@agrovetmarket.com,Jefe Planeamiento Financiero,Gerencia Finanzas y T.I,si,no,08-10-2001
+Ricardo,Calderón,00000008,ricardo.calderon@agrovetmarket.com,Jefe Admin,Gerencia Finanzas y T.I,si,no,09-10-2001
+Kevin,Marroquín,00000009,kevin.marroquin@agrovetmarket.com,Asesor Legal,Gerencia Finanzas y T.I,no,no,10-10-2001
+César,García,00000010,cesar.garcia@agrovetmarket.com,Supervisor Infraestructura TI,Gerencia Finanzas y T.I,no,no,11-10-2001
+Mariano,Polo,00000011,mariano.polo@agrovetmarket.com,Supervisor Seguridad,Gerencia Finanzas y T.I,no,no,12-10-2001
+Juan,Portal,00000012,juan.portal@agrovetmarket.com,Asistente Aplicaciones,Gerencia Finanzas y T.I,no,no,13-10-2001
+Miguel,Maguiña,00000013,miguel.maguina@agrovetmarket.com,Asistente TI,Gerencia Finanzas y T.I,no,no,14-10-2001
+Denis,Huamán,00000014,denis.huaman@agrovetmarket.com,Asistente TI,Gerencia Finanzas y T.I,no,no,15-10-2001
+José,Guerrero,00000015,jose.guerrero@agrovetmarket.com,Practicante TI,Gerencia Finanzas y T.I,no,no,16-10-2001
+Luis,Ortega,00000016,luis.ortega@agrovetmarket.com,Practicante TI,Gerencia Finanzas y T.I,no,no,17-10-2001
+Marilia,Tinoco,00000017,marilia.tinoco@agrovetmarket.com,Supervisor Finanzas,Gerencia Finanzas y T.I,no,no,18-10-2001
+Katia,Bárcena,00000018,katia.barcena@agrovetmarket.com,Supervisor Créditos,Gerencia Finanzas y T.I,no,no,19-10-2001
+Ana,Flores,00000019,ana.flores@agrovetmarket.com,Supervisor Contable,Gerencia Finanzas y T.I,no,no,20-10-2001
+Blanca,Loayza,00000020,blanca.loayza@agrovetmarket.com,Supervisor Costos,Gerencia Finanzas y T.I,no,no,21-10-2001
