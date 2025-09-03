@@ -1,52 +1,36 @@
 """
-Vista para cambiar dinámicamente la configuración de base de datos
+Vista para configurar la base de datos Supabase
 """
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.conf import settings
-import dj_database_url
 from django.db import connection
 from django.views.decorators.csrf import csrf_exempt
-import json
 
 def configurar_bd(request):
     """Página para configurar la base de datos"""
     return render(request, 'empleados/configurar_bd.html')
 
 @csrf_exempt
-def cambiar_a_supabase(request):
-    """Cambiar la configuración de base de datos a Supabase dinámicamente"""
+def ejecutar_migraciones(request):
+    """Ejecutar migraciones en Supabase"""
     if request.method == 'POST':
         try:
-            # URL de Supabase
-            supabase_url = "postgresql://postgres:3jbxqfv$2gyW$yG@db.mwjdmmowllmxygscgcex.supabase.co:5432/postgres"
+            from django.core.management import call_command
             
-            # Configurar nueva base de datos
-            new_db_config = dj_database_url.parse(supabase_url)
-            
-            # Cerrar conexión actual
-            connection.close()
-            
-            # Actualizar configuración
-            settings.DATABASES['default'] = new_db_config
-            
-            # Probar nueva conexión
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT version();")
-                version = cursor.fetchone()
+            # Ejecutar migraciones
+            call_command('migrate', verbosity=1)
             
             return JsonResponse({
                 'success': True,
-                'message': 'Conectado exitosamente a Supabase',
-                'database': 'PostgreSQL (Supabase)',
-                'version': version[0] if version else 'Unknown'
+                'message': 'Migraciones ejecutadas exitosamente en Supabase'
             })
             
         except Exception as e:
             return JsonResponse({
                 'success': False,
                 'error': str(e),
-                'message': 'Error conectando a Supabase'
+                'message': 'Error ejecutando migraciones'
             })
     
     return JsonResponse({'error': 'Método no permitido'}, status=405)
@@ -64,8 +48,10 @@ def estado_base_datos(request):
             db_name = db_config.get('NAME', 'Unknown')
             db_info = f"Archivo: {db_name}"
         elif 'postgresql' in engine:
-            db_type = 'PostgreSQL'
-            db_info = f"Host: {db_config.get('HOST', 'localhost')}:{db_config.get('PORT', '5432')}"
+            db_type = 'PostgreSQL (Supabase)'
+            host = db_config.get('HOST', 'localhost')
+            port = db_config.get('PORT', '5432')
+            db_info = f"Host: {host}:{port}"
         else:
             db_type = 'Unknown'
             db_info = str(db_config)
@@ -73,18 +59,22 @@ def estado_base_datos(request):
         # Probar conexión
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SELECT 1;")
-                connection_status = 'Conectado'
+                cursor.execute("SELECT version(), current_database();")
+                result = cursor.fetchone()
+                version = result[0] if result else 'Unknown'
+                database = result[1] if result and len(result) > 1 else 'Unknown'
+                connection_status = f'Conectado a {database}'
         except Exception as e:
             connection_status = f'Error: {str(e)}'
+            version = 'N/A'
         
         return JsonResponse({
             'database_type': db_type,
             'database_info': db_info,
             'connection_status': connection_status,
             'engine': engine,
-            'supabase_available': True,
-            'supabase_url': 'postgresql://postgres:***@db.mwjdmmowllmxygscgcex.supabase.co:5432/postgres'
+            'version': version,
+            'supabase_configured': 'postgresql' in engine and 'supabase' in db_info.lower()
         })
         
     except Exception as e:

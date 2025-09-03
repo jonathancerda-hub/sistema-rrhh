@@ -23,7 +23,7 @@ ALLOWED_HOSTS = [
     '*'  # Temporal para debugging (quitar en producción final)
 ]
 
-# Database configuration - Supabase PostgreSQL
+# Database configuration - Supabase PostgreSQL directamente
 SUPABASE_DATABASE_URL = "postgresql://postgres:3jbxqfv$2gyW$yG@db.mwjdmmowllmxygscgcex.supabase.co:5432/postgres"
 
 # Usar Supabase como base de datos principal
@@ -37,18 +37,6 @@ DATABASES = {
 
 print(f"🐘 Usando PostgreSQL (Supabase): {SUPABASE_DATABASE_URL[:60]}...")
 print("✅ Base de datos configurada para producción")
-    # Durante el build/import, esto es normal
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'postgres',
-            'USER': 'postgres',
-            'PASSWORD': '3jbxqfv$2gyW$yG',
-            'HOST': 'db.mwjdmmowllmxygscgcex.supabase.co',
-            'PORT': '5432',
-            'CONN_MAX_AGE': 600,
-        }
-    }
 
 # Static files configuration
 STATIC_URL = '/static/'

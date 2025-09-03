@@ -92,26 +92,20 @@
         </div>
         
         <div class="step">
-            <h3>📋 Paso 1: Verificar Estado Actual</h3>
-            <p>Primero vamos a verificar el estado actual de la base de datos.</p>
-            <button class="btn" onclick="verificarEstado()">🔍 Verificar Estado</button>
+            <h3>📋 Paso 1: Verificar Conexión a Supabase</h3>
+            <p>Verificar que la aplicación esté conectada correctamente a Supabase PostgreSQL.</p>
+            <button class="btn" onclick="verificarEstado()">🔍 Verificar Conexión</button>
         </div>
         
         <div class="step">
-            <h3>🔄 Paso 2: Cambiar a Supabase</h3>
-            <p>Cambiar la configuración de SQLite temporal a PostgreSQL de Supabase.</p>
-            <button class="btn btn-success" onclick="cambiarASupabase()">🚀 Cambiar a Supabase</button>
+            <h3>�️ Paso 2: Crear Tablas en Supabase</h3>
+            <p>Ejecutar las migraciones de Django para crear todas las tablas necesarias.</p>
+            <button class="btn btn-success" onclick="ejecutarMigraciones()">🏗️ Ejecutar Migraciones</button>
         </div>
         
         <div class="step">
-            <h3>🛠️ Paso 3: Crear Tablas</h3>
-            <p>Una vez conectado a Supabase, crear las tablas necesarias.</p>
-            <button class="btn" onclick="crearTablas()">🏗️ Crear Tablas</button>
-        </div>
-        
-        <div class="step">
-            <h3>👥 Paso 4: Cargar Usuarios</h3>
-            <p>Cargar los usuarios del organigrama en Supabase.</p>
+            <h3>👥 Paso 3: Cargar Usuarios</h3>
+            <p>Cargar los usuarios del organigrama en la base de datos de Supabase.</p>
             <button class="btn" onclick="cargarUsuarios()">👨‍💼 Cargar Usuarios</button>
         </div>
         
@@ -123,11 +117,11 @@
         <div id="results"></div>
         
         <div class="status-box warning">
-            <h4>⚠️ Importante</h4>
+            <h4>💡 Información</h4>
             <p>
-                • Este proceso cambia la base de datos de SQLite temporal a PostgreSQL de Supabase<br>
-                • Asegúrate de completar todos los pasos en orden<br>
-                • Si algo falla, puedes intentar nuevamente
+                • Supabase PostgreSQL está configurado directamente en el código<br>
+                • Solo necesitas ejecutar las migraciones y cargar los usuarios<br>
+                • El proceso es más simple y directo ahora
             </p>
         </div>
     </div>
@@ -159,20 +153,26 @@
                     <strong>Tipo:</strong> ${data.database_type}<br>
                     <strong>Info:</strong> ${data.database_info}<br>
                     <strong>Estado:</strong> ${data.connection_status}<br>
-                    <strong>Engine:</strong> ${data.engine}
+                    <strong>Versión:</strong> ${data.version || 'N/A'}<br>
+                    <strong>Engine:</strong> ${data.engine}<br>
+                    <strong>¿Es Supabase?:</strong> ${data.is_supabase ? '✅ Sí' : '❌ No'}
                 `;
                 
-                showResult(`✅ Estado verificado: ${data.database_type}`, 'success');
+                if (data.is_supabase) {
+                    showResult(`✅ Conectado a Supabase: ${data.database_type}`, 'success');
+                } else {
+                    showResult(`⚠️ Base de datos actual: ${data.database_type}`, 'warning');
+                }
             } catch (error) {
                 showResult(`❌ Error verificando estado: ${error.message}`, 'error');
             }
             hideLoading();
         }
         
-        async function cambiarASupabase() {
+        async function ejecutarMigraciones() {
             showLoading();
             try {
-                const response = await fetch('/setup/cambiar-supabase/', {
+                const response = await fetch('/setup/ejecutar-migraciones/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -181,30 +181,13 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    showResult(`✅ ${data.message}<br>Base de datos: ${data.database}`, 'success');
+                    showResult(`✅ ${data.message}`, 'success');
                     verificarEstado(); // Actualizar estado
                 } else {
                     showResult(`❌ Error: ${data.error}`, 'error');
                 }
             } catch (error) {
-                showResult(`❌ Error conectando a Supabase: ${error.message}`, 'error');
-            }
-            hideLoading();
-        }
-        
-        async function crearTablas() {
-            showLoading();
-            try {
-                const response = await fetch('/setup/tablas/');
-                const text = await response.text();
-                
-                if (text.includes('exitosamente') || text.includes('success')) {
-                    showResult('✅ Tablas creadas exitosamente en Supabase', 'success');
-                } else {
-                    showResult(`⚠️ Respuesta: ${text}`, 'warning');
-                }
-            } catch (error) {
-                showResult(`❌ Error creando tablas: ${error.message}`, 'error');
+                showResult(`❌ Error ejecutando migraciones: ${error.message}`, 'error');
             }
             hideLoading();
         }
