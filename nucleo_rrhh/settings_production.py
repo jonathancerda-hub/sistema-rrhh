@@ -26,6 +26,11 @@ ALLOWED_HOSTS = [
 # La variable DATABASE_URL debe estar configurada en Render.com
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
+# TEMPORAL: Forzar Supabase si no está configurada
+if not DATABASE_URL:
+    print("⚠️ DATABASE_URL no encontrada, usando Supabase por defecto")
+    DATABASE_URL = "postgresql://postgres:3jbxqfv$2gyW$yG@db.mwjdmmowllmxygscgcex.supabase.co:5432/postgres"
+
 if DATABASE_URL:
     # Usar PostgreSQL (Supabase o Render)
     DATABASES = {
