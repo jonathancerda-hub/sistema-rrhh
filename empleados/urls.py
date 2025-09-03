@@ -9,6 +9,7 @@ from . import crear_superusuario
 from . import ver_datos
 from . import fix_admin
 from . import views_setup
+from . import views_carga_masiva
 
 urlpatterns = [
     # URL TEMPORAL para inicializar datos en producción (ELIMINAR DESPUÉS DE USAR)
@@ -67,4 +68,8 @@ urlpatterns = [
     path('rrhh/empleados/<int:empleado_id>/offboarding/', views.rrhh_offboarding_empleado, name='rrhh_offboarding_empleado'),
     # Configuración de notificaciones
     path('rrhh/configurar-notificaciones/', views_notificaciones.configurar_notificaciones, name='configurar_notificaciones'),
+    
+    # URLs para Carga Masiva
+    path('carga-masiva/', views_carga_masiva.carga_masiva_view, name='carga_masiva'),
+    path('procesar-csv/', views_carga_masiva.procesar_csv_upload, name='procesar_csv_upload'),
 ]

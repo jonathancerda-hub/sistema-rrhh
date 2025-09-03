@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carga Masiva de Empleados - AgroVet Market RRHH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            max-width: 900px;
+            width: 100%;
+            min-height: 600px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card h3 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            opacity: 0.9;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #4CAF50;
+            background: #f0f8f0;
+        }
+
+        .upload-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .file-input-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .file-name {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e8f5e8;
+            border-radius: 8px;
+            color: #2e7d32;
+            font-weight: 500;
+            display: none;
+        }
+
+        .upload-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .upload-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 152, 0, 0.3);
+        }
+
+        .upload-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .result-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .result-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .result-card.error {
+            border-left-color: #f44336;
+        }
+
+        .result-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .result-card p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .messages {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .message {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .message:last-child {
+            border-bottom: none;
+        }
+
+        .instructions {
+            background: #e3f2fd;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #2196F3;
+        }
+
+        .instructions h3 {
+            color: #1976D2;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .instructions ul {
+            padding-left: 20px;
+            color: #424242;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .example-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .example-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .example-table th {
+            background: #2196F3;
+            color: white;
+            padding: 12px;
+            font-weight: 600;
+        }
+
+        .example-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .example-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-button:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="{% url 'inicio_empleado' %}" class="back-button">← Volver al Dashboard</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Carga Masiva de Empleados</h1>
+            <p>Sistema de importación para organigrama AgroVet Market</p>
+        </div>
+
+        <div class="content">
+            <!-- Estadísticas actuales -->
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>{{ total_usuarios }}</h3>
+                    <p>Usuarios Registrados</p>
+                </div>
+                <div class="stat-card">
+                    <h3>{{ usuarios_agrovet }}</h3>
+                    <p>Empleados AgroVet</p>
+                </div>
+            </div>
+
+            <!-- Instrucciones -->
+            <div class="instructions">
+                <h3>📋 Instrucciones para la Carga</h3>
+                <ul>
+                    <li><strong>Formato:</strong> El archivo debe ser CSV con codificación UTF-8</li>
+                    <li><strong>Delimitador:</strong> Usar coma (,) o punto y coma (;)</li>
+                    <li><strong>Username:</strong> Se generará automáticamente como "nombre.apellido" sin tildes</li>
+                    <li><strong>Contraseña:</strong> Todos los usuarios tendrán la clave "agrovet2025"</li>
+                    <li><strong>Columnas requeridas:</strong> nombre, apellido, email</li>
+                    <li><strong>Columnas opcionales:</strong> dni, puesto, area, gerencia</li>
+                </ul>
+
+                <div class="example-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>nombre</th>
+                                <th>apellido</th>
+                                <th>email</th>
+                                <th>dni</th>
+                                <th>puesto</th>
+                                <th>area</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>María José</td>
+                                <td>González</td>
+                                <td>maria.gonzalez@agrovetmarket.com</td>
+                                <td>12345678</td>
+                                <td>Gerente RRHH</td>
+                                <td>Recursos Humanos</td>
+                            </tr>
+                            <tr>
+                                <td>Juan Carlos</td>
+                                <td>Pérez</td>
+                                <td>juan.perez@agrovetmarket.com</td>
+                                <td>87654321</td>
+                                <td>Asistente Comercial</td>
+                                <td>Ventas</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sección de carga -->
+            <div class="upload-section">
+                <h2>📁 Subir Archivo CSV</h2>
+                
+                <form id="uploadForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="file-input-wrapper">
+                        <input type="file" id="csvFile" name="archivo_csv" accept=".csv" class="file-input">
+                        <label for="csvFile" class="file-input-button">
+                            📁 Seleccionar archivo CSV
+                        </label>
+                        <div id="fileName" class="file-name"></div>
+                    </div>
+                    
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    
+                    <button type="submit" id="uploadButton" class="upload-button">
+                        🚀 Procesar y Cargar Empleados
+                    </button>
+                </form>
+            </div>
+
+            <!-- Sección de resultados -->
+            <div id="resultSection" class="result-section">
+                <h2>📊 Resultados de la Carga</h2>
+                
+                <div id="resultSummary" class="result-summary">
+                    <!-- Los resultados se llenarán dinámicamente -->
+                </div>
+                
+                <div id="messages" class="messages">
+                    <!-- Los mensajes se llenarán dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('csvFile');
+            const fileName = document.getElementById('fileName');
+            const uploadButton = document.getElementById('uploadButton');
+            const uploadForm = document.getElementById('uploadForm');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const resultSection = document.getElementById('resultSection');
+
+            // Manejar selección de archivo
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    fileName.textContent = `📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+                    fileName.style.display = 'block';
+                    uploadButton.style.display = 'block';
+                } else {
+                    fileName.style.display = 'none';
+                    uploadButton.style.display = 'none';
+                }
+            });
+
+            // Manejar envío del formulario
+            uploadForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const file = fileInput.files[0];
+                if (!file) {
+                    alert('Por favor selecciona un archivo CSV');
+                    return;
+                }
+
+                // Mostrar progreso
+                uploadButton.disabled = true;
+                uploadButton.textContent = '⏳ Procesando...';
+                progressBar.style.display = 'block';
+                
+                // Simular progreso
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 20;
+                    if (progress > 90) progress = 90;
+                    progressFill.style.width = progress + '%';
+                }, 200);
+
+                // Enviar archivo
+                const formData = new FormData();
+                formData.append('archivo_csv', file);
+                formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+                fetch('{% url "procesar_csv_upload" %}', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    clearInterval(progressInterval);
+                    progressFill.style.width = '100%';
+                    
+                    setTimeout(() => {
+                        uploadButton.disabled = false;
+                        uploadButton.textContent = '🚀 Procesar y Cargar Empleados';
+                        progressBar.style.display = 'none';
+                        progressFill.style.width = '0%';
+                        
+                        mostrarResultados(data);
+                    }, 500);
+                })
+                .catch(error => {
+                    clearInterval(progressInterval);
+                    uploadButton.disabled = false;
+                    uploadButton.textContent = '🚀 Procesar y Cargar Empleados';
+                    progressBar.style.display = 'none';
+                    
+                    alert('Error al procesar el archivo: ' + error.message);
+                });
+            });
+
+            function mostrarResultados(data) {
+                const resultSummary = document.getElementById('resultSummary');
+                const messages = document.getElementById('messages');
+                
+                // Limpiar contenido anterior
+                resultSummary.innerHTML = '';
+                messages.innerHTML = '';
+                
+                if (data.error) {
+                    resultSummary.innerHTML = `
+                        <div class="result-card error">
+                            <h3>❌</h3>
+                            <p>Error</p>
+                        </div>
+                    `;
+                    messages.innerHTML = `<div class="message">❌ ${data.error}</div>`;
+                } else {
+                    // Mostrar resumen
+                    resultSummary.innerHTML = `
+                        <div class="result-card">
+                            <h3>${data.usuarios_creados}</h3>
+                            <p>Usuarios Creados</p>
+                        </div>
+                        <div class="result-card">
+                            <h3>${data.usuarios_actualizados}</h3>
+                            <p>Usuarios Actualizados</p>
+                        </div>
+                        <div class="result-card ${data.errores > 0 ? 'error' : ''}">
+                            <h3>${data.errores}</h3>
+                            <p>Errores</p>
+                        </div>
+                    `;
+                    
+                    // Mostrar mensajes
+                    data.mensajes.forEach(mensaje => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = 'message';
+                        messageDiv.textContent = mensaje;
+                        messages.appendChild(messageDiv);
+                    });
+                }
+                
+                resultSection.style.display = 'block';
+                resultSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    </script>
+</body>
+</html>
