@@ -4,13 +4,17 @@ import dj_database_url
 from .settings import *
 
 # Debug setting for deployment
-DEBUG = True  # Cambiar a False después de verificar que funciona
+DEBUG = False  # Cambiar a False para reducir uso de memoria
 
 # Configuración de zona horaria para Perú
 LANGUAGE_CODE = 'es-pe'
 TIME_ZONE = 'America/Lima'
 USE_I18N = True
 USE_TZ = True
+
+# Optimizaciones para memoria
+CONN_MAX_AGE = 60  # Reutilizar conexiones de BD
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB máximo
 
 # Render provides the hostname
 ALLOWED_HOSTS = [
@@ -66,23 +70,29 @@ X_FRAME_OPTIONS = 'DENY'
 # Use environment variable for secret key in production
 SECRET_KEY = os.environ.get('SECRET_KEY', SECRET_KEY)
 
-# Logging configuration
+# Logging configuration optimizado
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': True,
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+            'level': 'WARNING',  # Solo mensajes importantes
         },
     },
     'root': {
         'handlers': ['console'],
-        'level': 'INFO',
+        'level': 'WARNING',
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'ERROR',  # Solo errores de Django
+            'propagate': False,
+        },
+        'django.db': {
+            'handlers': [],
+            'level': 'ERROR',
             'propagate': False,
         },
     },

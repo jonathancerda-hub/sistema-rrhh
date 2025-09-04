@@ -27,8 +27,8 @@ def inicializar_emergencia(request):
             old_stdout = sys.stdout
             sys.stdout = output
             
-            # Ejecutar el comando de inicialización
-            call_command('inicializar_completo')
+            # Ejecutar el comando de inicialización rápida en lugar del completo
+            call_command('inicializar_rapido')
             
             # Restaurar stdout
             sys.stdout = old_stdout

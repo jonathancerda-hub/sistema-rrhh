@@ -15,6 +15,7 @@ from . import views_db_switch
 from . import views_emergencia
 from . import views_inicio
 from . import views_estado
+from . import views_simple
 
 urlpatterns = [
     # URL TEMPORAL para inicializar datos en producción (ELIMINAR DESPUÉS DE USAR)
@@ -87,4 +88,8 @@ urlpatterns = [
     
     # URL de emergencia para inicialización
     path('setup/emergencia/', views_emergencia.inicializar_emergencia, name='inicializar_emergencia'),
+    
+    # URLs de testing simple
+    path('test/', views_simple.vista_simple, name='vista_simple'),
+    path('test/db/', views_simple.test_db, name='test_db'),
 ]

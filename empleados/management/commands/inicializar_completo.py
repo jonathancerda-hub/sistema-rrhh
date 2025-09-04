@@ -6,20 +6,28 @@ from datetime import date
 import sys
 
 class Command(BaseCommand):
-    help = 'Inicializar completamente la aplicación en producción'
+    help = 'Inicializar completamente la aplicación en producción (optimizado para memoria)'
 
     def handle(self, *args, **options):
         self.stdout.write(
-            self.style.SUCCESS('🚀 Iniciando configuración completa de producción...')
+            self.style.SUCCESS('🚀 Iniciando configuración optimizada de producción...')
         )
         
         try:
-            # 1. Ejecutar migraciones
-            self.stdout.write('📊 Ejecutando migraciones...')
-            call_command('migrate', '--run-syncdb', verbosity=0)
-            self.stdout.write(self.style.SUCCESS('✅ Migraciones completadas'))
+            # 1. Verificar si ya está inicializado
+            if User.objects.exists() and Empleado.objects.exists():
+                self.stdout.write(
+                    self.style.WARNING('⚠️ Sistema ya inicializado')
+                )
+                self.mostrar_usuarios_existentes()
+                return
             
-            # 2. Crear superusuario si no existe
+            # 2. Ejecutar migraciones solo si es necesario
+            self.stdout.write('📊 Verificando migraciones...')
+            call_command('migrate', '--run-syncdb', verbosity=0)
+            self.stdout.write(self.style.SUCCESS('✅ Migraciones verificadas'))
+            
+            # 3. Crear solo superusuario si no existe
             if not User.objects.filter(is_superuser=True).exists():
                 self.stdout.write('👑 Creando superusuario...')
                 User.objects.create_superuser(
@@ -29,24 +37,12 @@ class Command(BaseCommand):
                 )
                 self.stdout.write(self.style.SUCCESS('✅ Superusuario creado: admin / admin123456'))
             
-            # 3. Verificar si ya existen empleados
-            if Empleado.objects.exists():
-                self.stdout.write(
-                    self.style.WARNING('⚠️ Ya existen empleados en la base de datos')
-                )
-                self.mostrar_usuarios_existentes()
-                return
-
-            # 4. Crear usuarios básicos del sistema
-            self.crear_usuarios_basicos()
-            
-            # 5. Recopilar archivos estáticos
-            self.stdout.write('📁 Recopilando archivos estáticos...')
-            call_command('collectstatic', '--noinput', verbosity=0)
-            self.stdout.write(self.style.SUCCESS('✅ Archivos estáticos recopilados'))
+            # 4. Crear usuarios básicos solo si no existen empleados
+            if not Empleado.objects.exists():
+                self.crear_usuarios_basicos()
             
             self.stdout.write(
-                self.style.SUCCESS('\n🎉 ¡Configuración de producción completada!')
+                self.style.SUCCESS('\n🎉 ¡Configuración completada!')
             )
             self.mostrar_resumen()
 
@@ -54,7 +50,7 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.ERROR(f'❌ Error en la configuración: {e}')
             )
-            sys.exit(1)
+            # No hacer sys.exit(1) para evitar problemas en producción
 
     def crear_usuarios_basicos(self):
         """Crear usuarios básicos del sistema"""

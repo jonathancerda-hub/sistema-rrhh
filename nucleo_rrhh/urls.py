@@ -9,6 +9,7 @@ from . import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('health/', views.health_check, name='health_check'),
+    path('simple/', views.vista_simple_root, name='vista_simple_root'),
     path('empleados/', include('empleados.urls')),
     path('', views.root_redirect, name='root_redirect'),
 ]

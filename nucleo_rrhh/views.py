@@ -51,3 +51,23 @@ def health_check(request):
             
     except Exception as e:
         return HttpResponse(f"ERROR: {str(e)}", status=500)
+
+def vista_simple_root(request):
+    """Vista simple sin dependencias para testing"""
+    return HttpResponse("""
+        <html>
+        <head><title>Sistema RRHH</title></head>
+        <body style="font-family: Arial; padding: 40px; text-align: center;">
+            <h1>🏢 Sistema RRHH</h1>
+            <p>Vista simple funcionando</p>
+            <div style="margin: 20px;">
+                <a href="/empleados/" style="padding: 10px 20px; background: #2196f3; color: white; text-decoration: none; border-radius: 5px;">
+                    🏠 Sistema Principal
+                </a>
+                <a href="/empleados/setup/emergencia/" style="padding: 10px 20px; background: #f44336; color: white; text-decoration: none; border-radius: 5px; margin-left: 10px;">
+                    🚨 Inicializar
+                </a>
+            </div>
+        </body>
+        </html>
+    """)

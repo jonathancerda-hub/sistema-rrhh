@@ -15,23 +15,16 @@ pip install -r requirements.txt
 echo "Collecting static files..."
 python manage.py collectstatic --no-input --clear
 
-# Apply database migrations and initialize system
-echo "Applying migrations and initializing system..."
+# Apply database migrations only - skip heavy initialization
+echo "Applying migrations..."
 MAX_RETRIES=3
 RETRY_COUNT=0
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     if python manage.py migrate --no-input; then
         echo "✅ Migrations applied successfully"
-        
-        # Initialize production system
-        echo "🚀 Initializing production system..."
-        if python manage.py inicializar_completo; then
-            echo "✅ System initialization completed"
-        else
-            echo "⚠️ System initialization failed, but continuing..."
-            echo "💡 You can initialize manually at /empleados/setup/diagnostico/"
-        fi
+        echo "⏭️ Initialization will be done on first web access"
+        echo "💡 System will auto-initialize at /empleados/setup/emergencia/"
         break
     else
         RETRY_COUNT=$((RETRY_COUNT + 1))
