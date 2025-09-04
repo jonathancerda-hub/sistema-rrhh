@@ -3,13 +3,18 @@ services:
     name: sistema-rrhh
     env: python
     buildCommand: "./build.sh"
-    startCommand: "gunicorn --timeout 120 --workers 2 --max-requests 100 --max-requests-jitter 10 --preload nucleo_rrhh.wsgi:application"
+    startCommand: "gunicorn --timeout 120 --workers 2 --max-requests 100 nucleo_rrhh.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: DJANGO_SETTINGS_MODULE
-        value: nucleo_rrhh.settings_production
+        value: nucleo_rrhh.settings_production_final
       - key: SECRET_KEY
         generateValue: true
       - key: WEB_CONCURRENCY
         value: 2
+
+  - type: pgsql
+    name: sistema-rrhh-db
+    databaseName: sistema_rrhh
+    user: sistema_rrhh_user

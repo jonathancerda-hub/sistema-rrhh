@@ -2,57 +2,24 @@
 from django.urls import path
 from . import views
 from . import views_notificaciones
-from . import setup_views
-from . import setup_simple
-from . import setup_admin
-from . import crear_superusuario
-from . import ver_datos
-from . import fix_admin
-from . import views_setup
-from . import views_carga_masiva
-from . import diagnostico_bd
-from . import views_db_switch
-from . import views_emergencia
-from . import views_inicio
+from . import login_debug
+from . import listar_usuarios
+from . import login_agrovet
 from . import views_estado
-from . import views_simple
 
 urlpatterns = [
-    # URL TEMPORAL para inicializar datos en producción (ELIMINAR DESPUÉS DE USAR)
-    path('setup/inicializar/', setup_views.inicializar_datos_produccion, name='inicializar_produccion'),
-    path('setup/simple/', setup_simple.setup_simple, name='setup_simple'),
-    path('setup/admin/', setup_admin.hacer_admin, name='hacer_admin'),
-    path('setup/superuser/', crear_superusuario.crear_superusuario, name='crear_superusuario'),
-    path('setup/organigrama/', views_setup.cargar_usuarios_organigrama, name='cargar_organigrama'),
-    path('setup/tablas/', views_setup.crear_tablas_supabase, name='crear_tablas'),
-    path('setup/diagnostico/', diagnostico_bd.diagnostico_bd, name='diagnostico_bd'),
-    path('setup/configurar-bd/', views_db_switch.configurar_bd, name='configurar_bd'),
-    path('setup/cambiar-supabase/', views_db_switch.cambiar_a_supabase, name='cambiar_supabase'),
-    path('setup/estado-db/', views_db_switch.estado_base_datos, name='estado_db'),
-    path('setup/verificar-estado/', views_estado.verificar_estado_sistema, name='verificar_estado_sistema'),
-    path('datos/', ver_datos.ver_datos_existentes, name='ver_datos_existentes'),
-    path('fix-admin/', fix_admin.fix_admin_access, name='fix_admin_access'),
+    # URLs principales del sistema
+    path('', views.inicio, name='inicio'),
+    path('login/', views.login_empleado, name='login'),
+    path('logout/', views.logout_empleado, name='logout'),
+    path('perfil/', views.perfil, name='perfil'),
     
-    # URL para la página raíz - maneja casos sin inicializar
-    path('', views_inicio.inicio_sistema, name='inicio_sistema'),
-    path('dashboard/', views_inicio.dashboard_empleado, name='dashboard_empleado'),
-
-    # URLs de autenticación
-    path('login/', views.login_empleado, name='login_empleado'),
-    path('logout/', views.logout_empleado, name='logout_empleado'),
-
-    # URLs de la aplicación principal
-    path('perfil/', views.perfil_empleado, name='perfil_empleado'),
-
-    # URLs para Solicitudes de Vacaciones
-    path('vacaciones/', views.lista_solicitudes_vacaciones, name='solicitudes_vacaciones'),
-    path('vacaciones/nueva/', views.nueva_solicitud_vacaciones, name='nueva_solicitud_vacaciones'),
-    path('vacaciones/<int:solicitud_id>/', views.detalle_solicitud_vacaciones, name='detalle_solicitud_vacaciones'),
-    path('vacaciones/<int:solicitud_id>/cancelar/', views.cancelar_solicitud_vacaciones, name='cancelar_solicitud_vacaciones'),
-
-    # URL para AJAX
-    path('vacaciones/calcular-dias/', views.calcular_dias_vacaciones, name='calcular_dias_vacaciones'),
-
+    # Solicitudes de vacaciones
+    path('solicitud/', views.nueva_solicitud, name='nueva_solicitud'),
+    path('solicitud/nueva/', views.nueva_solicitud_vacaciones, name='nueva_solicitud_vacaciones'),
+    path('solicitudes/', views.lista_solicitudes, name='lista_solicitudes'),
+    path('solicitudes/detalle/<int:solicitud_id>/', views.detalle_solicitud_vacaciones, name='detalle_solicitud_vacaciones'),
+    
     # URLs para Managers
     path('manager/', views.manager_dashboard, name='manager_dashboard'),
     path('manager/equipo/', views.equipo_manager, name='equipo_manager'),
@@ -82,14 +49,9 @@ urlpatterns = [
     # Configuración de notificaciones
     path('rrhh/configurar-notificaciones/', views_notificaciones.configurar_notificaciones, name='configurar_notificaciones'),
     
-    # URLs para Carga Masiva
-    path('carga-masiva/', views_carga_masiva.carga_masiva_view, name='carga_masiva'),
-    path('procesar-csv/', views_carga_masiva.procesar_csv_upload, name='procesar_csv_upload'),
-    
-    # URL de emergencia para inicialización
-    path('setup/emergencia/', views_emergencia.inicializar_emergencia, name='inicializar_emergencia'),
-    
-    # URLs de testing simple
-    path('test/', views_simple.vista_simple, name='vista_simple'),
-    path('test/db/', views_simple.test_db, name='test_db'),
+    # URLs de diagnóstico y AgroVet - Solo las esenciales que funcionan
+    path('login-debug/', login_debug.login_debug_view, name='login_debug'),
+    path('usuarios/', listar_usuarios.listar_usuarios_view, name='listar_usuarios'),
+    path('agrovet/', login_agrovet.login_agrovet_view, name='login_agrovet'),
+    path('estado/', views_estado.estado_sistema, name='estado_sistema'),
 ]
