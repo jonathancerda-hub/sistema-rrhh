@@ -5,9 +5,15 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+# Importar vistas de diagnóstico
+from diagnostico_views import diagnostico_produccion, forzar_migraciones
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('empleados.urls')),
+    # Endpoints de diagnóstico para producción
+    path('diagnostico/', diagnostico_produccion, name='diagnostico'),
+    path('fix-migrations/', forzar_migraciones, name='fix_migrations'),
 ]
 
 # Servir archivos de media en desarrollo
