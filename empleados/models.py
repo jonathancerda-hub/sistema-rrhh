@@ -45,7 +45,20 @@ class Empleado(models.Model):
     email = models.EmailField(unique=True)
     puesto = models.CharField(max_length=100)
     fecha_contratacion = models.DateField()
-    dias_vacaciones_disponibles = models.IntegerField(default=20)
+    dias_vacaciones_disponibles = models.IntegerField(default=20, help_text='Días laborables de vacaciones por período')
+    # Nuevos campos para control de días calendario
+    dias_vacaciones_calendario = models.IntegerField(
+        default=42, 
+        help_text='Días calendario equivalentes (laborables + fines de semana estimados)'
+    )
+    dias_calendario_tomados_año = models.IntegerField(
+        default=0,
+        help_text='Días calendario ya tomados en el año actual'
+    )
+    fines_semana_incluidos_año = models.IntegerField(
+        default=0,
+        help_text='Cantidad de fines de semana incluidos en vacaciones del año'
+    )
     # Campo para asignar un mánager a cada empleado.
     manager = models.ForeignKey(
         'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='equipo'
@@ -118,6 +131,44 @@ class Empleado(models.Model):
         # Jerarquías que pueden gestionar equipos
         jerarquias_gestoras = ['director', 'gerente', 'sub_gerente', 'jefe']
         return self.es_manager or self.jerarquia in jerarquias_gestoras or self.es_rrhh
+
+    def calcular_dias_disponibles(self):
+        """
+        Calcula días de vacaciones disponibles según antigüedad.
+        Política simple: días asignados - días utilizados en el año actual
+        """
+        from datetime import date
+        
+        # Días base según antigüedad
+        if self.fecha_contratacion:
+            hoy = date.today()
+            antiguedad = hoy - self.fecha_contratacion
+            
+            if antiguedad.days >= 1825:  # Más de 5 años
+                dias_por_antiguedad = 35
+            elif antiguedad.days >= 730:  # Más de 2 años
+                dias_por_antiguedad = 30
+            elif antiguedad.days >= 365:  # Más de 1 año
+                dias_por_antiguedad = 25
+            else:
+                dias_por_antiguedad = 20  # Base
+        else:
+            dias_por_antiguedad = 30  # Default
+        
+        # Obtener días ya utilizados en el año actual
+        año_actual = date.today().year
+        
+        solicitudes_aprobadas = SolicitudVacaciones.objects.filter(
+            empleado=self,
+            estado='aprobado',
+            fecha_inicio__year=año_actual
+        )
+        
+        # Sumar días solicitados
+        dias_utilizados = sum(s.dias_solicitados for s in solicitudes_aprobadas)
+        
+        # Días disponibles = días por antigüedad - días utilizados
+        return max(0, dias_por_antiguedad - dias_utilizados)
 
 class SolicitudVacaciones(models.Model):
     ESTADOS_CHOICES = [
@@ -203,21 +254,145 @@ class SolicitudVacaciones(models.Model):
         else:
             return 'regulares'
     
-    def calcular_dias_disponibles(self):
+    def calcular_dias_calendario(self, fecha_inicio, fecha_fin):
         """
-        Calcula los días disponibles según el tipo de vacaciones y antigüedad
+        Calcula días del período (días corridos simples).
+        Política simplificada: Solo cuenta días del período, no diferencia calendario vs laborable.
         """
-        tipo = self.determinar_tipo_vacaciones()
+        if not fecha_inicio or not fecha_fin:
+            return 0
         
-        if tipo == 'adelantadas':
-            # Para empleados nuevos, máximo 15 días
-            return min(15, self.empleado.dias_vacaciones_disponibles)
-        elif tipo == 'fraccionadas':
-            # Para empleados con 1-2 años, máximo 20 días
-            return min(20, self.empleado.dias_vacaciones_disponibles)
+        delta = fecha_fin - fecha_inicio
+        return delta.days + 1
+    
+    def contar_fines_de_semana(self, fecha_inicio, fecha_fin):
+        """
+        Cuenta sábados y domingos en el rango de fechas
+        """
+        if not fecha_inicio or not fecha_fin:
+            return {'sabados': 0, 'domingos': 0}
+        
+        from datetime import timedelta
+        
+        sabados = 0
+        domingos = 0
+        fecha_actual = fecha_inicio
+        
+        while fecha_actual <= fecha_fin:
+            if fecha_actual.weekday() == 5:  # Sábado
+                sabados += 1
+            elif fecha_actual.weekday() == 6:  # Domingo
+                domingos += 1
+            fecha_actual += timedelta(days=1)
+        
+        return {'sabados': sabados, 'domingos': domingos}
+    
+    def validar_periodo_vacaciones(self, fecha_inicio, fecha_fin):
+        """
+        Valida período de vacaciones con política simple:
+        - El empleado tiene X días totales (30, 35, etc. según antigüedad)
+        - Debe incluir fines de semana en sus períodos (política educativa)
+        - Se cuentan los días solicitados contra el total disponible
+        """
+        # Calcular días del período (simplemente días corridos)
+        dias_periodo = (fecha_fin - fecha_inicio).days + 1
+        fines_semana = self.contar_fines_de_semana(fecha_inicio, fecha_fin)
+        
+        errores = []
+        advertencias = []
+        mensajes_informativos = []
+        
+        # Validaciones básicas (solo errores críticos)
+        if fecha_fin < fecha_inicio:
+            errores.append("La fecha de fin no puede ser anterior a la fecha de inicio")
+        
+        # Verificar días disponibles (ESTO ES LO IMPORTANTE)
+        dias_disponibles = self.empleado.calcular_dias_disponibles()
+        if dias_periodo > dias_disponibles:
+            errores.append(f"Estás solicitando {dias_periodo} días pero solo tienes {dias_disponibles} disponibles en tu cuota anual")
+        
+        # Mensajes informativos sobre fines de semana (política educativa)
+        if fines_semana['sabados'] == 0 and fines_semana['domingos'] == 0:
+            mensajes_informativos.append("💡 POLÍTICA: Se recomienda incluir algunos fines de semana en tus períodos de vacaciones")
+        elif fines_semana['sabados'] > 0 or fines_semana['domingos'] > 0:
+            mensajes_informativos.append(f"✅ Excelente! Cumples la política incluyendo {fines_semana['sabados']} sábados y {fines_semana['domingos']} domingos")
+        
+        # Verificar cumplimiento anual de política de fines de semana
+        cumplimiento_anual = {}
+        if self.empleado:
+            cumplimiento_anual = self.verificar_cumplimiento_politica_anual()
+            if cumplimiento_anual['necesita_mas_fines_semana']:
+                mensajes_informativos.append(f"📅 Para cumplir mejor la política anual, considera incluir más fines de semana (llevas {cumplimiento_anual['fines_semana_incluidos']} de {cumplimiento_anual['meta_fines_semana']} recomendados)")
         else:
-            # Para empleados con más de 2 años, días completos
-            return self.empleado.dias_vacaciones_disponibles
+            # Si no hay empleado asignado, usar valores por defecto
+            cumplimiento_anual = {
+                'total_sabados': 0,
+                'total_domingos': 0,
+                'fines_semana_incluidos': 0,
+                'meta_fines_semana': 4,
+                'necesita_mas_fines_semana': True,
+                'fines_semana_faltantes': 4,
+                'porcentaje_cumplimiento': 0
+            }
+        
+        # Advertencia sobre días no utilizados (si quedan muchos días)
+        if dias_periodo < dias_disponibles:
+            dias_restantes = dias_disponibles - dias_periodo
+            if dias_restantes > 10:
+                advertencias.append(f"Te quedan {dias_restantes} días de vacaciones pendientes. Considera planificar más períodos.")
+        
+        return {
+            'valido': len(errores) == 0,
+            'dias_periodo': dias_periodo,  # Cambié de 'dias_calendario' a 'dias_periodo'
+            'fines_semana': fines_semana,
+            'errores': errores,
+            'advertencias': advertencias,
+            'mensajes_informativos': mensajes_informativos,
+            'cumplimiento_anual': cumplimiento_anual,
+            'dias_disponibles': dias_disponibles,
+            'dias_restantes': max(0, dias_disponibles - dias_periodo)
+        }
+    
+    def verificar_cumplimiento_politica_anual(self):
+        """
+        Verifica si el empleado ha cumplido con la política anual de incluir fines de semana
+        """
+        from datetime import date
+        año_actual = date.today().year
+        
+        # Obtener todas las solicitudes aprobadas del año actual
+        solicitudes_año = SolicitudVacaciones.objects.filter(
+            empleado=self.empleado,
+            estado='aprobado',
+            fecha_inicio__year=año_actual
+        )
+        
+        # Contar total de fines de semana incluidos en vacaciones del año
+        total_sabados = 0
+        total_domingos = 0
+        
+        for solicitud in solicitudes_año:
+            fines_semana = self.contar_fines_de_semana(solicitud.fecha_inicio, solicitud.fecha_fin)
+            total_sabados += fines_semana['sabados']
+            total_domingos += fines_semana['domingos']
+        
+        # Política flexible: Se recomienda incluir al menos algunos fines de semana
+        # Meta sugerida: al menos 4 fines de semana en el año (más flexible)
+        meta_fines_semana = 4
+        
+        fines_semana_incluidos = total_sabados + total_domingos
+        necesita_mas = fines_semana_incluidos < meta_fines_semana
+        faltantes = max(0, meta_fines_semana - fines_semana_incluidos)
+        
+        return {
+            'total_sabados': total_sabados,
+            'total_domingos': total_domingos,
+            'fines_semana_incluidos': fines_semana_incluidos,
+            'meta_fines_semana': meta_fines_semana,
+            'necesita_mas_fines_semana': necesita_mas,
+            'fines_semana_faltantes': faltantes,
+            'porcentaje_cumplimiento': min(100, (fines_semana_incluidos / meta_fines_semana) * 100) if meta_fines_semana > 0 else 100
+        }
     
     def validar_incluye_fines_semana(self):
         """
@@ -265,7 +440,7 @@ class SolicitudVacaciones(models.Model):
             errores.append("La solicitud debe incluir al menos un sábado o domingo")
         
         # Validar que no exceda el límite de días según el tipo
-        dias_disponibles = self.calcular_dias_disponibles()
+        dias_disponibles = self.empleado.calcular_dias_disponibles()
         if self.dias_solicitados > dias_disponibles:
             errores.append(f"Excede el límite de {dias_disponibles} días para el tipo '{self.get_tipo_vacaciones_display()}'")
         

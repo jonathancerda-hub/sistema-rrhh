@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicialización de Emergencia - Sistema RRHH</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            color: #d32f2f;
+            margin-bottom: 30px;
+        }
+        
+        .status {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 3px;
+        }
+        
+        .status-good { border-left: 4px solid #4caf50; }
+        .status-warning { border-left: 4px solid #ff9800; }
+        .status-error { border-left: 4px solid #f44336; }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #2196f3;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+        }
+        
+        .btn-success {
+            background: #4caf50;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .instructions {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 Inicialización de Emergencia</h1>
+            <p>Sistema de Recursos Humanos</p>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Esta página es solo para emergencias</strong><br>
+            Úsala solo si el sistema no se inicializó correctamente durante el despliegue.
+        </div>
+
+        <div class="status">
+            <h3>📊 Estado Actual del Sistema</h3>
+            
+            <div class="status-item {% if users_count > 0 %}status-good{% else %}status-error{% endif %}">
+                <span>👥 Usuarios en Django:</span>
+                <strong>{{ users_count }}</strong>
+            </div>
+            
+            <div class="status-item {% if superusers_count > 0 %}status-good{% else %}status-error{% endif %}">
+                <span>👑 Superusuarios:</span>
+                <strong>{{ superusers_count }}</strong>
+            </div>
+            
+            <div class="status-item {% if empleados_count > 0 %}status-good{% else %}status-error{% endif %}">
+                <span>🏢 Empleados registrados:</span>
+                <strong>{{ empleados_count }}</strong>
+            </div>
+        </div>
+
+        {% if users_count == 0 or superusers_count == 0 %}
+        <div class="instructions">
+            <h3>🔧 ¿Qué hace la inicialización?</h3>
+            <ul>
+                <li>✅ Ejecuta todas las migraciones de base de datos</li>
+                <li>👑 Crea un superusuario: <code>admin / admin123456</code></li>
+                <li>👥 Crea usuarios básicos del sistema (RRHH, Manager, Empleado)</li>
+                <li>📁 Recopila archivos estáticos</li>
+                <li>🔍 Verifica la configuración del sistema</li>
+            </ul>
+        </div>
+
+        <form method="post" onsubmit="document.getElementById('init-btn').style.display='none'; document.getElementById('loading').style.display='block';">
+            {% csrf_token %}
+            <button type="submit" id="init-btn" class="btn btn-danger">
+                🚀 Inicializar Sistema Completo
+            </button>
+            <div id="loading" style="display: none;">
+                <p>⏳ Inicializando sistema... Esto puede tomar unos minutos.</p>
+            </div>
+        </form>
+        {% else %}
+        <div class="instructions">
+            <h3>✅ Sistema Inicializado</h3>
+            <p>El sistema parece estar ya inicializado. Puedes acceder a:</p>
+        </div>
+        {% endif %}
+
+        <div style="margin-top: 30px;">
+            <a href="/empleados/" class="btn btn-success">🏠 Sistema RRHH</a>
+            <a href="/admin/" class="btn">⚙️ Panel Admin</a>
+            <a href="/empleados/setup/diagnostico/" class="btn">🔍 Diagnóstico</a>
+            <a href="/empleados/setup/verificar-estado/" class="btn">📊 Verificar Estado</a>
+        </div>
+
+        <div style="margin-top: 30px; text-align: center; color: #666;">
+            <small>
+                📝 Si tienes problemas, contacta al administrador del sistema.<br>
+                🌐 URL de la aplicación: {{ request.get_host }}
+            </small>
+        </div>
+    </div>
+</body>
+</html>

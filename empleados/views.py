@@ -425,18 +425,21 @@ def nueva_solicitud_vacaciones(request):
     # Calcular fecha límite para tomar vacaciones (generalmente 6 meses después del período)
     fecha_limite = fin_periodo + timedelta(days=180)  # 6 meses después
     
-    # Verificar políticas de vacaciones
+    # Verificar nuevas políticas de vacaciones (informativas y flexibles)
     politicas_info = []
     
-    # Política: No más de 15 días consecutivos
+    # Política: Máximo 15 días consecutivos
     if dias_restantes_periodo > 15:
         politicas_info.append("⚠️ Máximo 15 días consecutivos por solicitud")
     
-    # Política: Fines de semana no cuentan
-    politicas_info.append("ℹ️ Los fines de semana no cuentan como días de vacaciones")
+    # Política principal: Cuota anual de días
+    politicas_info.append(f"� POLÍTICA PRINCIPAL: Tienes {dias_por_antiguedad} días de vacaciones anuales")
     
-    # Política: Días festivos no cuentan
-    politicas_info.append("ℹ️ Los días festivos no cuentan como días de vacaciones")
+    # Nueva política: Se recomienda incluir fines de semana (informativo)
+    politicas_info.append("� RECOMENDACIÓN: Incluye fines de semana en tus vacaciones para cumplir mejor la política anual")
+    
+    # Política: Flexibilidad en fechas
+    politicas_info.append("✅ FLEXIBILIDAD: Puedes elegir cualquier período de fechas")
     
     # Política: Aviso previo
     politicas_info.append("ℹ️ Mínimo 15 días de aviso previo para solicitudes")
@@ -488,9 +491,44 @@ def nueva_solicitud_vacaciones(request):
                     'antiguedad_dias': antiguedad.days if antiguedad else 0
                 })
             
-            # Calcular días solicitados
-            delta = solicitud.fecha_fin - solicitud.fecha_inicio
-            solicitud.dias_solicitados = delta.days + 1
+            # Calcular días calendario usando nueva lógica
+            solicitud_temp = SolicitudVacaciones(empleado=empleado)
+            solicitud_temp.fecha_inicio = solicitud.fecha_inicio
+            solicitud_temp.fecha_fin = solicitud.fecha_fin
+            
+            # Usar nueva validación
+            validacion = solicitud_temp.validar_periodo_vacaciones(
+                solicitud.fecha_inicio, 
+                solicitud.fecha_fin
+            )
+            
+            # Verificar si la nueva validación pasó
+            if not validacion['valido']:
+                # Mostrar errores específicos
+                for error in validacion['errores']:
+                    messages.error(request, error)
+                return render(request, 'empleados/nueva_solicitud_vacaciones.html', {
+                    'form': form, 
+                    'empleado': empleado,
+                    'dias_restantes_periodo': dias_restantes_periodo,
+                    'dias_restantes_total': dias_restantes_total,
+                    'dias_por_antiguedad': dias_por_antiguedad,
+                    'fecha_limite': fecha_limite,
+                    'politicas_info': politicas_info,
+                    'dias_tomados_periodo': dias_tomados_periodo,
+                    'antiguedad_dias': antiguedad.days if antiguedad else 0
+                })
+            
+            # Usar días del período de la nueva validación
+            solicitud.dias_solicitados = validacion['dias_periodo']
+            
+            # Mostrar mensajes informativos
+            for mensaje in validacion.get('mensajes_informativos', []):
+                messages.info(request, mensaje)
+            
+            # Mostrar advertencias si las hay
+            for advertencia in validacion['advertencias']:
+                messages.warning(request, advertencia)
             
             # Validar que no exceda días restantes del período
             if solicitud.dias_solicitados > dias_restantes_periodo:
@@ -516,7 +554,7 @@ def nueva_solicitud_vacaciones(request):
                 solicitud.tipo_vacaciones = solicitud.determinar_tipo_vacaciones()
             
             # Validar días disponibles según el tipo
-            dias_disponibles = solicitud.calcular_dias_disponibles()
+            dias_disponibles = empleado.calcular_dias_disponibles()
             if solicitud.dias_solicitados > dias_disponibles:
                 messages.error(
                     request, 
@@ -550,7 +588,7 @@ def nueva_solicitud_vacaciones(request):
                 messages.success(request, 'Solicitud de vacaciones enviada exitosamente.')
                 messages.warning(request, 'Hubo un problema enviando la notificación por email, pero tu solicitud fue registrada correctamente.')
             
-            return redirect('solicitudes_vacaciones')
+            return redirect('lista_solicitudes_vacaciones')
     else:
         form = SolicitudVacacionesForm()
         
@@ -616,27 +654,61 @@ def cancelar_solicitud_vacaciones(request, solicitud_id):
         messages.error(request, 'No tienes un perfil de empleado asociado.')
         return redirect('login_empleado')
 
-    return redirect('solicitudes_vacaciones')
+    return redirect('lista_solicitudes_vacaciones')
 
 @login_required
 def calcular_dias_vacaciones(request):
     """
-    Vista AJAX para calcular días de vacaciones
+    Vista AJAX para calcular días de vacaciones con nuevas políticas
     """
-    if request.method == 'POST' and request.is_ajax():
-        fecha_inicio = request.POST.get('fecha_inicio')
-        fecha_fin = request.POST.get('fecha_fin')
+    if request.method == 'POST':
+        fecha_inicio_str = request.POST.get('fecha_inicio')
+        fecha_fin_str = request.POST.get('fecha_fin')
         
         try:
-            fecha_inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d').date()
-            fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
+            # Obtener empleado
+            empleado = Empleado.objects.get(email=request.user.email)
             
-            delta = fecha_fin - fecha_inicio
-            dias = delta.days + 1
+            # Crear solicitud temporal para usar los métodos de validación
+            from empleados.models import SolicitudVacaciones
+            solicitud_temp = SolicitudVacaciones(empleado=empleado)
             
-            return JsonResponse({'dias': dias, 'success': True})
+            # Convertir fechas
+            fecha_inicio = datetime.strptime(fecha_inicio_str, '%Y-%m-%d').date()
+            fecha_fin = datetime.strptime(fecha_fin_str, '%Y-%m-%d').date()
+            
+            # Validar fechas básicas
+            if fecha_fin < fecha_inicio:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'La fecha de fin no puede ser anterior a la fecha de inicio'
+                })
+            
+            # Usar nueva validación
+            validacion = solicitud_temp.validar_periodo_vacaciones(fecha_inicio, fecha_fin)
+            
+            # Preparar respuesta
+            respuesta = {
+                'success': True,
+                'dias_periodo': validacion['dias_periodo'],
+                'fines_semana': validacion['fines_semana'],
+                'valido': validacion['valido'],
+                'errores': validacion['errores'],
+                'advertencias': validacion['advertencias'],
+                'mensajes_informativos': validacion.get('mensajes_informativos', []),
+                'cumplimiento_anual': validacion.get('cumplimiento_anual', {}),
+                'dias_disponibles': validacion.get('dias_disponibles', 0),
+                'dias_restantes': validacion.get('dias_restantes', 0)
+            }
+            
+            return JsonResponse(respuesta)
+            
+        except Empleado.DoesNotExist:
+            return JsonResponse({'error': 'Empleado no encontrado', 'success': False})
         except ValueError:
             return JsonResponse({'error': 'Fechas inválidas', 'success': False})
+        except Exception as e:
+            return JsonResponse({'error': f'Error: {str(e)}', 'success': False})
     
     return JsonResponse({'error': 'Método no permitido', 'success': False})
 

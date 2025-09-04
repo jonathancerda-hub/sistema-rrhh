@@ -41,7 +41,7 @@
         {% endif %}
 
         <div class="actions">
-            <a href="{% url 'solicitudes_vacaciones' %}" class="btn btn-back">Volver a la lista</a>
+            <a href="{% url 'lista_solicitudes_vacaciones' %}" class="btn btn-back">Volver a la lista</a>
             {% if solicitud.puede_cancelar %}
                 <a href="{% url 'cancelar_solicitud_vacaciones' solicitud.id %}" class="btn btn-cancel" onclick="return confirm('¿Estás seguro de que quieres cancelar esta solicitud?');">Cancelar Solicitud</a>
             {% endif %}

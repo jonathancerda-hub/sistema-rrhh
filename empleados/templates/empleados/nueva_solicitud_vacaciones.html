@@ -13,7 +13,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .page {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 32px auto;
             padding: 0 16px;
         }
@@ -29,16 +29,25 @@
             padding: 20px;
             text-align: center;
         }
+        .form-section {
+            padding: 30px;
+        }
         .info-section {
             background: #f8f9fa;
             border-radius: 12px;
             padding: 20px;
-            margin: 20px;
+            margin-bottom: 20px;
             border-left: 4px solid #667eea;
+        }
+        .right-panel {
+            background: #f8f9fa;
+            padding: 30px;
+            border-left: 1px solid #e9ecef;
+            min-height: 600px;
         }
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -49,16 +58,24 @@
             border-radius: 8px;
             border: 1px solid #e9ecef;
         }
+        .dias-calculados {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
         .stat-number {
-            font-size: 1.5rem;
+            font-size: 2em;
             font-weight: bold;
             color: #667eea;
         }
         .stat-label {
-            font-size: 0.8rem;
+            font-size: 0.875em;
             color: #6c757d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            margin-top: 5px;
         }
         .politicas-list {
             list-style: none;
@@ -70,6 +87,48 @@
         }
         .politicas-list li:last-child {
             border-bottom: none;
+        }
+        .politicas-container {
+            max-height: none;
+            overflow: visible;
+        }
+        .politica-item {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid #e9ecef;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+        .politica-item:hover {
+            background: rgba(255, 255, 255, 0.9);
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+        }
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #5a6fd8, #6a4190);
+            color: white;
+        }
+        .alert-sm {
+            padding: 8px 12px;
+            font-size: 0.875rem;
+        }
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            padding: 10px 12px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        @media (max-width: 991px) {
+            .right-panel {
+                border-left: none;
+                border-top: 1px solid #e9ecef;
+            }
+        }
         }
         .btn-gradient {
             background: linear-gradient(135deg, #667eea, #764ba2);
@@ -114,128 +173,160 @@
                 <p class="mb-0 mt-2">Empleado: {{ empleado.nombre }} {{ empleado.apellido }}</p>
             </div>
 
-            <!-- Información de Vacaciones -->
-            <div class="info-section">
-                <h4 class="mb-3">
-                    <i class="bi bi-info-circle"></i>
-                    Estado de tus Vacaciones
-                </h4>
-                
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number">{{ dias_por_antiguedad }}</div>
-                        <div class="stat-label">Días por Año</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">{{ dias_tomados_periodo }}</div>
-                        <div class="stat-label">Días Tomados</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">{{ dias_restantes_periodo }}</div>
-                        <div class="stat-label">Días Restantes</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">{{ antiguedad_dias|floatformat:0 }}</div>
-                        <div class="stat-label">Días Antigüedad</div>
+            <div class="row g-0">
+                <!-- Columna Izquierda: Formulario -->
+                <div class="col-lg-7">
+                    <div class="form-section">
+                        <h4 class="mb-4">
+                            <i class="bi bi-pencil-square"></i>
+                            Solicitud de Vacaciones
+                        </h4>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Fecha de Inicio</label>
+                                    {{ form.fecha_inicio }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Fecha de Fin</label>
+                                    {{ form.fecha_fin }}
+                                </div>
+                            </div>
+
+                            <!-- Campo de Días Solicitados (automático) -->
+                            <div class="dias-calculados" id="dias-calculados" style="display: none;">
+                                <h5 class="mb-1">
+                                    <i class="bi bi-calendar-week"></i>
+                                    Días a Solicitar
+                                </h5>
+                                <div class="fs-3 fw-bold" id="dias-numero">0</div>
+                                <small id="mensaje-dias">Selecciona las fechas para calcular automáticamente</small>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Tipo de Vacaciones</label>
+                                    {{ form.tipo_vacaciones }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Período Vacacional</label>
+                                    {{ form.periodo_vacacional }}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Motivo (opcional)</label>
+                                {{ form.motivo }}
+                            </div>
+
+                            <div class="d-flex gap-2 mt-4">
+                                <button class="btn btn-gradient text-white" type="submit">
+                                    <i class="bi bi-send"></i> Enviar Solicitud
+                                </button>
+                                <a class="btn btn-outline-secondary" href="{% url 'lista_solicitudes_vacaciones' %}">
+                                    <i class="bi bi-list"></i> Ver mis solicitudes
+                                </a>
+                                <a class="btn btn-outline-primary" href="{% url 'inicio_empleado' %}">
+                                    <i class="bi bi-house"></i> Regresar al Inicio
+                                </a>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="alert alert-info alert-custom">
-                            <h6><i class="bi bi-calendar-check"></i> Fecha Límite</h6>
-                            <p class="mb-0">Tienes hasta el <strong>{{ fecha_limite|date:"d/m/Y" }}</strong> para tomar las vacaciones de este período.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="alert alert-warning alert-custom">
-                            <h6><i class="bi bi-exclamation-triangle"></i> Período Actual</h6>
-                            <p class="mb-0">Período: <strong>{{ antiguedad_dias|floatformat:0 }} días</strong> de antigüedad</p>
-                        </div>
-                    </div>
-                </div>
+                <!-- Columna Derecha: Estado y Políticas -->
+                <div class="col-lg-5">
+                    <div class="right-panel">
+                        <!-- Estado de Vacaciones -->
+                        <div class="info-section">
+                            <h5 class="mb-3">
+                                <i class="bi bi-info-circle"></i>
+                                Estado de tus Vacaciones
+                            </h5>
+                            
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ dias_por_antiguedad }}</div>
+                                    <div class="stat-label">Días por Año</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ dias_tomados_periodo }}</div>
+                                    <div class="stat-label">Días Tomados</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ dias_restantes_periodo }}</div>
+                                    <div class="stat-label">Días Restantes</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ antiguedad_dias|floatformat:0 }}</div>
+                                    <div class="stat-label">Días Antigüedad</div>
+                                </div>
+                            </div>
 
-                {% if dias_restantes_periodo <= 5 %}
-                <div class="alert alert-danger alert-custom mt-3">
-                    <h6><i class="bi bi-exclamation-triangle"></i> ¡Atención!</h6>
-                    <p class="mb-0">Solo te quedan <strong>{{ dias_restantes_periodo }}</strong> días disponibles en este período.</p>
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Políticas de Vacaciones -->
-            <div class="info-section">
-                <h4 class="mb-3">
-                    <i class="bi bi-shield-check"></i>
-                    Políticas y Reglas
-                </h4>
-                <ul class="politicas-list">
-                    {% for politica in politicas_info %}
-                        <li>
-                            {% if '🚨' in politica %}
-                                <span class="text-danger"><i class="bi bi-exclamation-triangle"></i></span>
-                            {% elif '⚠️' in politica %}
-                                <span class="text-warning"><i class="bi bi-exclamation-triangle"></i></span>
-                            {% elif '⏰' in politica %}
-                                <span class="text-info"><i class="bi bi-clock"></i></span>
-                            {% else %}
-                                <span class="text-info"><i class="bi bi-info-circle"></i></span>
+                            {% if dias_restantes_periodo <= 5 %}
+                            <div class="alert alert-danger alert-sm">
+                                <small><i class="bi bi-exclamation-triangle"></i> Solo quedan {{ dias_restantes_periodo }} días disponibles</small>
+                            </div>
                             {% endif %}
-                            {{ politica }}
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-            <!-- Formulario -->
-            <div class="p-4">
-                <h4 class="mb-3">
-                    <i class="bi bi-pencil-square"></i>
-                    Solicitud de Vacaciones
-                </h4>
-                
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Fecha de Inicio</label>
-                            {{ form.fecha_inicio }}
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Fecha de Fin</label>
-                            {{ form.fecha_fin }}
+
+                        <!-- Políticas y Reglas -->
+                        <div class="info-section">
+                            <h5 class="mb-3">
+                                <i class="bi bi-shield-check"></i>
+                                Políticas y Reglas
+                            </h5>
+                            <div class="politicas-container">
+                                {% for politica in politicas_info %}
+                                    <div class="politica-item mb-2 p-2 rounded">
+                                        {% if '🚨' in politica %}
+                                            <i class="bi bi-exclamation-triangle text-danger"></i>
+                                        {% elif '⚠️' in politica %}
+                                            <i class="bi bi-exclamation-triangle text-warning"></i>
+                                        {% elif '⏰' in politica %}
+                                            <i class="bi bi-clock text-info"></i>
+                                        {% elif '💼' in politica %}
+                                            <i class="bi bi-briefcase text-primary"></i>
+                                        {% elif '💡' in politica %}
+                                            <i class="bi bi-lightbulb text-info"></i>
+                                        {% elif '✅' in politica %}
+                                            <i class="bi bi-check-circle text-success"></i>
+                                        {% elif '📅' in politica %}
+                                            <i class="bi bi-calendar-event text-secondary"></i>
+                                        {% else %}
+                                            <i class="bi bi-info-circle text-info"></i>
+                                        {% endif %}
+                                        <small class="ms-2">{{ politica }}</small>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Información adicional -->
+                        <div class="info-section">
+                            <h6 class="mb-2">
+                                <i class="bi bi-calendar-check"></i>
+                                Fechas Importantes
+                            </h6>
+                            <div class="alert alert-info alert-sm mb-2">
+                                <small>
+                                    <strong>Fecha Límite:</strong> {{ fecha_limite|date:"d/m/Y" }}
+                                </small>
+                            </div>
+                            {% if dias_restantes_periodo <= 10 %}
+                            <div class="alert alert-warning alert-sm mb-2">
+                                <small>
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <strong>¡Atención!</strong> Solo tienes {{ dias_restantes_periodo }} días restantes
+                                </small>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Tipo de Vacaciones</label>
-                            {{ form.tipo_vacaciones }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Período Vacacional</label>
-                            {{ form.periodo_vacacional }}
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Motivo (opcional)</label>
-                        {{ form.motivo }}
-                    </div>
-
-                    <div class="d-flex gap-2 mt-4">
-                        <button class="btn btn-gradient text-white" type="submit">
-                            <i class="bi bi-send"></i> Enviar Solicitud
-                        </button>
-                        <a class="btn btn-outline-secondary" href="{% url 'solicitudes_vacaciones' %}">
-                            <i class="bi bi-list"></i> Ver mis solicitudes
-                        </a>
-                        <a class="btn btn-outline-primary" href="{% url 'inicio_empleado' %}">
-                            <i class="bi bi-house"></i> Regresar al Inicio
-                        </a>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
@@ -245,26 +336,90 @@
         document.addEventListener('DOMContentLoaded', function() {
             const fechaInicio = document.getElementById('id_fecha_inicio');
             const fechaFin = document.getElementById('id_fecha_fin');
+            const diasCalculados = document.getElementById('dias-calculados');
+            const diasNumero = document.getElementById('dias-numero');
+            const mensajeDias = document.getElementById('mensaje-dias');
             
             function calcularDias() {
                 if (fechaInicio.value && fechaFin.value) {
-                    const inicio = new Date(fechaInicio.value);
-                    const fin = new Date(fechaFin.value);
-                    const diffTime = Math.abs(fin - inicio);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                    
-                    // Mostrar días calculados
-                    if (diffDays > 0) {
-                        const diasRestantes = {{ dias_restantes_periodo }};
-                        if (diffDays > diasRestantes) {
-                            alert('⚠️ Estás solicitando ' + diffDays + ' días, pero solo tienes ' + diasRestantes + ' días disponibles.');
+                    // Usar nueva API de cálculo
+                    fetch('{% url "calcular_dias_vacaciones" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        },
+                        body: 'fecha_inicio=' + encodeURIComponent(fechaInicio.value) + 
+                              '&fecha_fin=' + encodeURIComponent(fechaFin.value)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Mostrar el campo de días calculados
+                            diasCalculados.style.display = 'block';
+                            diasNumero.textContent = data.dias_periodo;
+                            
+                            // Actualizar el mensaje y estilo según el estado
+                            if (!data.valido && data.errores && data.errores.length > 0) {
+                                diasCalculados.className = 'dias-calculados alert alert-danger';
+                                mensajeDias.innerHTML = '<i class="bi bi-exclamation-triangle"></i> ' + data.errores.join(', ');
+                            } else if (data.dias_periodo > data.dias_disponibles) {
+                                diasCalculados.className = 'dias-calculados alert alert-warning';
+                                mensajeDias.innerHTML = `<i class="bi bi-exclamation-triangle"></i> Excedes tus días disponibles (${data.dias_disponibles})`;
+                            } else {
+                                diasCalculados.className = 'dias-calculados';
+                                
+                                // Mensaje informativo sobre política
+                                let mensaje = '';
+                                if (data.mensajes_informativos && data.mensajes_informativos.length > 0) {
+                                    // Buscar mensaje sobre fines de semana
+                                    const mensajeFinesSemana = data.mensajes_informativos.find(m => m.includes('fines de semana') || m.includes('política'));
+                                    if (mensajeFinesSemana) {
+                                        if (mensajeFinesSemana.includes('💡') || mensajeFinesSemana.includes('recomienda')) {
+                                            mensaje = '<i class="bi bi-info-circle"></i> Se recomienda incluir fines de semana';
+                                        } else if (mensajeFinesSemana.includes('✅') || mensajeFinesSemana.includes('Excelente')) {
+                                            mensaje = '<i class="bi bi-check-circle"></i> Cumples la política de fines de semana';
+                                        }
+                                    }
+                                }
+                                
+                                if (!mensaje) {
+                                    if (data.fines_semana && (data.fines_semana.sabados > 0 || data.fines_semana.domingos > 0)) {
+                                        mensaje = `<i class="bi bi-calendar-check"></i> Incluye ${data.fines_semana.sabados} sábados y ${data.fines_semana.domingos} domingos`;
+                                    } else {
+                                        mensaje = `<i class="bi bi-info-circle"></i> Días restantes: ${data.dias_restantes}`;
+                                    }
+                                }
+                                
+                                mensajeDias.innerHTML = mensaje;
+                            }
+                            
+                        } else {
+                            diasCalculados.style.display = 'block';
+                            diasCalculados.className = 'dias-calculados alert alert-danger';
+                            diasNumero.textContent = '?';
+                            mensajeDias.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Error en el cálculo';
                         }
-                    }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        diasCalculados.style.display = 'block';
+                        diasCalculados.className = 'dias-calculados alert alert-danger';
+                        diasNumero.textContent = '?';
+                        mensajeDias.innerHTML = '<i class="bi bi-wifi-off"></i> Error de conexión';
+                    });
+                } else {
+                    // Ocultar si no hay fechas seleccionadas
+                    diasCalculados.style.display = 'none';
                 }
             }
             
+            // Eventos para recalcular
             if (fechaInicio) fechaInicio.addEventListener('change', calcularDias);
             if (fechaFin) fechaFin.addEventListener('change', calcularDias);
+            
+            // Calcular inmediatamente si ya hay fechas
+            calcularDias();
         });
     </script>
 </body>
