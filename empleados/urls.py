@@ -13,6 +13,8 @@ from . import views_carga_masiva
 from . import diagnostico_bd
 from . import views_db_switch
 from . import views_emergencia
+from . import views_inicio
+from . import views_estado
 
 urlpatterns = [
     # URL TEMPORAL para inicializar datos en producción (ELIMINAR DESPUÉS DE USAR)
@@ -26,11 +28,13 @@ urlpatterns = [
     path('setup/configurar-bd/', views_db_switch.configurar_bd, name='configurar_bd'),
     path('setup/cambiar-supabase/', views_db_switch.cambiar_a_supabase, name='cambiar_supabase'),
     path('setup/estado-db/', views_db_switch.estado_base_datos, name='estado_db'),
+    path('setup/verificar-estado/', views_estado.verificar_estado_sistema, name='verificar_estado_sistema'),
     path('datos/', ver_datos.ver_datos_existentes, name='ver_datos_existentes'),
     path('fix-admin/', fix_admin.fix_admin_access, name='fix_admin_access'),
     
-    # URL para la página raíz
-    path('', views.inicio_empleado, name='inicio_empleado'),
+    # URL para la página raíz - maneja casos sin inicializar
+    path('', views_inicio.inicio_sistema, name='inicio_sistema'),
+    path('dashboard/', views_inicio.dashboard_empleado, name='dashboard_empleado'),
 
     # URLs de autenticación
     path('login/', views.login_empleado, name='login_empleado'),
