@@ -11,3 +11,6 @@ django-storages[supabase]
  
 # Timezone library required by some environments / Django utilities
 pytz>=2023.3
+
+# WSGI server for production
+gunicorn>=20.1.0

@@ -1,0 +1,1 @@
+web: gunicorn nucleo_rrhh.wsgi --bind 0.0.0.0:$PORT --workers 3
