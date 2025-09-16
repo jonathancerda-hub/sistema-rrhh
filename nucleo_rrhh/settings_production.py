@@ -1,10 +1,18 @@
 import os
 import sys
 import dj_database_url
-from .settings import *
+from pathlib import Path
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# --- Core Settings ---
+ROOT_URLCONF = 'nucleo_rrhh.urls'
+WSGI_APPLICATION = 'nucleo_rrhh.wsgi.application'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Debug setting for deployment
-DEBUG = False  # Cambiar a False para reducir uso de memoria
+DEBUG = os.environ.get('DEBUG', '0') == '1'
 
 # Configuración de zona horaria para Perú
 LANGUAGE_CODE = 'es-pe'
@@ -12,18 +20,29 @@ TIME_ZONE = 'America/Lima'
 USE_I18N = True
 USE_TZ = True
 
+# --- Installed Apps ---
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'empleados',  # Tu app principal
+]
+
 # Optimizaciones para memoria
 CONN_MAX_AGE = 60  # Reutilizar conexiones de BD
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB máximo
 
 # Render provides the hostname
 ALLOWED_HOSTS = [
-    'tea-d2f53dumcj7s738afjo0.onrender.com',
-    '.onrender.com',
-    'localhost',
-    '127.0.0.1',
-    '*'  # Temporal para debugging
+    os.environ.get('RENDER_EXTERNAL_HOSTNAME'),
 ]
+# Add render.com hostnames to allowed hosts
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # --- Configuración de Base de Datos para Producción ---
 # Lee la URL de la base de datos desde las variables de entorno de Render.
@@ -44,6 +63,11 @@ DATABASES = {
     )
 }
 
+# Forzar el uso de SSL para la conexión a la base de datos, como se requiere en Supabase.
+DATABASES['default']['OPTIONS'] = {
+    'sslmode': 'require',
+}
+
 # Static files configuration
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [] # Anular STATICFILES_DIRS del settings base para producción
@@ -62,13 +86,30 @@ MIDDLEWARE = [
 ]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# --- Templates ---
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
 # Security settings
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
 # Use environment variable for secret key in production
-SECRET_KEY = os.environ.get('SECRET_KEY', SECRET_KEY)
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # Logging configuration optimizado
 LOGGING = {
@@ -97,6 +138,10 @@ LOGGING = {
         },
     },
 }
+
+# --- Media Files ---
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Email configuration
 if os.environ.get('EMAIL_HOST'):
