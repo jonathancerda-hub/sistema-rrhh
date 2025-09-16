@@ -6,4 +6,4 @@ psycopg2-binary==2.9.7
 pytz==2023.3
 whitenoise==6.5.0
 django-storages
-supabase-py
+supabase
