@@ -52,10 +52,11 @@ python manage.py crear_usuarios_supabase
 
 ### Credenciales de Supabase
 - **Host**: db.mwjdmmowllmxygscgcex.supabase.co
+- **Host**: db.hyfftznlycaojigtpvto.supabase.co
 - **Puerto**: 5432
 - **Base**: postgres
 - **Usuario**: postgres
-- **Password**: 3jbxqfv$2gyW$yG
+- **Password**: [TU_NUEVA_CONTRASEÑA]
 
 ## 📝 PARA CONTINUAR:
 

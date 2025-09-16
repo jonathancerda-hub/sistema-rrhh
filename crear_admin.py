@@ -4,7 +4,7 @@ import sys
 import django
 
 # Configurar Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'nucleo_rrhh.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'nucleo_rrhh.settings_production')
 django.setup()
 
 from django.contrib.auth.models import User

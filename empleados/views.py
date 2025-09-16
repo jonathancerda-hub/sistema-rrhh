@@ -15,19 +15,6 @@ import pytz
 from .models import Empleado, SolicitudVacaciones, SolicitudNuevoColaborador
 from .forms import SolicitudVacacionesForm, SolicitudNuevoColaboradorForm
 
-def obtener_fecha_lima():
-    """
-    Obtiene la fecha actual en zona horaria de Lima, Perú
-    """
-    lima_tz = pytz.timezone('America/Lima')
-    return timezone.now().astimezone(lima_tz)
-
-def obtener_solo_fecha_lima():
-    """
-    Obtiene solo la fecha (sin hora) en zona horaria de Lima, Perú
-    """
-    return obtener_fecha_lima().date()
-
 def generar_password_temporal():
     """
     Genera una contraseña temporal segura de 12 caracteres
@@ -49,42 +36,19 @@ def mapear_denominacion_a_jerarquia(denominacion_puesto):
     }
     return mapeo.get(denominacion_puesto, 'auxiliar')  # auxiliar por defecto
 
-def mapear_area_a_gerencia(area_solicitante):
-    """
-    Mapea el área solicitante a una gerencia específica
-    """
-    mapeo = {
-        'comercial': 'gerencia_comercial_local',
-        'internacional': 'gerencia_comercial_internacional',
-        'recursos humanos': 'gerencia_desarrollo_organizacional',
-        'rrhh': 'gerencia_desarrollo_organizacional',
-        'finanzas': 'gerencia_administracion_finanzas',
-        'administracion': 'gerencia_administracion_finanzas',
-        'contabilidad': 'gerencia_administracion_finanzas',
-    }
-    
-    # Buscar coincidencias parciales en el área
-    area_lower = area_solicitante.lower()
-    for key, value in mapeo.items():
-        if key in area_lower:
-            return value
-    
-    # Por defecto, usar gerencia de desarrollo organizacional
-    return 'gerencia_desarrollo_organizacional'
-
 def mapear_area_a_gerencia(area):
     """
     Mapea el área a una gerencia válida
     """
     area_lower = area.lower()
-    if 'comercial' in area_lower and ('local' in area_lower or 'nacional' in area_lower):
-        return 'gerencia_comercial_local'
-    elif 'comercial' in area_lower and ('internacional' in area_lower or 'export' in area_lower):
-        return 'gerencia_comercial_internacional'
-    elif 'desarrollo' in area_lower or 'organizacional' in area_lower or 'rrhh' in area_lower:
+    if 'desarrollo' in area_lower or 'organizacional' in area_lower or 'rrhh' in area_lower or 'recursos humanos' in area_lower:
         return 'gerencia_desarrollo_organizacional'
     elif 'administracion' in area_lower or 'finanzas' in area_lower or 'contabilidad' in area_lower:
         return 'gerencia_administracion_finanzas'
+    elif 'comercial' in area_lower and ('local' in area_lower or 'nacional' in area_lower):
+        return 'gerencia_comercial_local'
+    elif 'comercial' in area_lower and ('internacional' in area_lower or 'export' in area_lower):
+        return 'gerencia_comercial_internacional'
     else:
         return 'gerencia_administracion_finanzas'  # Por defecto
 
@@ -367,6 +331,70 @@ def lista_solicitudes_vacaciones(request):
     
     return render(request, 'empleados/solicitudes_vacaciones.html', contexto)
 
+def _obtener_contexto_vacaciones(empleado):
+    """
+    Función auxiliar para calcular y devolver el contexto de vacaciones de un empleado.
+    """
+    # Obtener solicitudes del empleado
+    solicitudes = SolicitudVacaciones.objects.filter(empleado=empleado)
+    solicitudes_aprobadas = solicitudes.filter(estado='aprobado')
+    
+    # Calcular días tomados en el período actual
+    hoy = date.today()
+    inicio_periodo = date(hoy.year, 1, 1)
+    fin_periodo = date(hoy.year, 12, 31)
+    
+    dias_tomados_periodo = sum(
+        s.dias_solicitados for s in solicitudes_aprobadas 
+        if s.fecha_inicio >= inicio_periodo and s.fecha_fin <= fin_periodo
+    )
+    
+    # Calcular días disponibles según antigüedad
+    antiguedad = None
+    dias_por_antiguedad = 20  # Base
+    if empleado.fecha_contratacion:
+        antiguedad = hoy - empleado.fecha_contratacion
+        if antiguedad.days >= 1825:  # Más de 5 años
+            dias_por_antiguedad = 35
+        elif antiguedad.days >= 730:  # Más de 2 años
+            dias_por_antiguedad = 30
+        elif antiguedad.days >= 365:  # Más de 1 año
+            dias_por_antiguedad = 25
+    
+    dias_restantes_periodo = max(0, dias_por_antiguedad - dias_tomados_periodo)
+    
+    # Calcular fecha límite para tomar vacaciones
+    fecha_limite = fin_periodo + timedelta(days=180)
+    
+    # Políticas de vacaciones informativas
+    politicas_info = []
+    politicas_info.append(f"💼 POLÍTICA PRINCIPAL: Tienes {dias_por_antiguedad} días de vacaciones anuales")
+    politicas_info.append("💡 RECOMENDACIÓN: Incluye fines de semana en tus vacaciones para cumplir mejor la política anual")
+    politicas_info.append("✅ FLEXIBILIDAD: Puedes elegir cualquier período de fechas")
+    politicas_info.append("📅 Mínimo 15 días de aviso previo para solicitudes")
+    if dias_restantes_periodo > 15:
+        politicas_info.append("⚠️ Máximo 15 días consecutivos por solicitud")
+    
+    # Alertas dinámicas
+    if dias_restantes_periodo <= 10 and dias_restantes_periodo > 0:
+        politicas_info.append(f"🚨 ¡Atención! Solo te quedan {dias_restantes_periodo} días disponibles en este período.")
+    elif dias_restantes_periodo == 0:
+        politicas_info.append("🚨 Ya no tienes días disponibles en este período.")
+
+    dias_hasta_limite = (fecha_limite - hoy).days
+    if dias_hasta_limite <= 60:
+        politicas_info.append(f"⏰ Fecha límite para tomar vacaciones: {fecha_limite.strftime('%d/%m/%Y')} (en {dias_hasta_limite} días)")
+
+    return {
+        'dias_restantes_periodo': dias_restantes_periodo,
+        'dias_por_antiguedad': dias_por_antiguedad,
+        'fecha_limite': fecha_limite,
+        'politicas_info': politicas_info,
+        'dias_tomados_periodo': dias_tomados_periodo,
+        'antiguedad_dias': antiguedad.days if antiguedad else 0,
+        'dias_restantes_total': max(0, dias_por_antiguedad - sum(s.dias_solicitados for s in solicitudes_aprobadas)) # Para consistencia
+    }
+
 @login_required
 def nueva_solicitud_vacaciones(request):
     """
@@ -378,119 +406,15 @@ def nueva_solicitud_vacaciones(request):
         messages.error(request, 'No tienes un perfil de empleado asociado.')
         return redirect('login_empleado')
     
-    # Calcular información de vacaciones del empleado
-    from datetime import date, timedelta
-    
-    # Obtener solicitudes del empleado
-    solicitudes = SolicitudVacaciones.objects.filter(empleado=empleado)
-    solicitudes_aprobadas = solicitudes.filter(estado='aprobado')
-    solicitudes_pendientes = solicitudes.filter(estado='pendiente')
-    
-    # Calcular días tomados en el período actual
-    hoy = date.today()
-    inicio_periodo = date(hoy.year, 1, 1)  # 1 de enero del año actual
-    fin_periodo = date(hoy.year, 12, 31)   # 31 de diciembre del año actual
-    
-    # Días tomados en el período actual
-    dias_tomados_periodo = sum(
-        s.dias_solicitados for s in solicitudes_aprobadas 
-        if s.fecha_inicio >= inicio_periodo and s.fecha_fin <= fin_periodo
-    )
-    
-    # Días tomados totales (para cálculo de antigüedad)
-    dias_tomados_total = sum(s.dias_solicitados for s in solicitudes_aprobadas)
-    
-    # Calcular días disponibles según antigüedad
-    if empleado.fecha_contratacion:
-        antiguedad = hoy - empleado.fecha_contratacion
-        dias_por_antiguedad = 20  # Base
-        
-        if antiguedad.days >= 1825:  # Más de 5 años
-            dias_por_antiguedad = 35
-        elif antiguedad.days >= 730:  # Más de 2 años
-            dias_por_antiguedad = 30
-        elif antiguedad.days >= 365:  # Más de 1 año
-            dias_por_antiguedad = 25
-    else:
-        # Si no tiene fecha de contratación, asumir días base
-        antiguedad = None
-        dias_por_antiguedad = 20
-    
-    # Días restantes del período actual
-    dias_restantes_periodo = max(0, dias_por_antiguedad - dias_tomados_periodo)
-    
-    # Días restantes totales
-    dias_restantes_total = max(0, dias_por_antiguedad - dias_tomados_total)
-    
-    # Calcular fecha límite para tomar vacaciones (generalmente 6 meses después del período)
-    fecha_limite = fin_periodo + timedelta(days=180)  # 6 meses después
-    
-    # Verificar nuevas políticas de vacaciones (informativas y flexibles)
-    politicas_info = []
-    
-    # Política: Máximo 15 días consecutivos
-    if dias_restantes_periodo > 15:
-        politicas_info.append("⚠️ Máximo 15 días consecutivos por solicitud")
-    
-    # Política principal: Cuota anual de días
-    politicas_info.append(f"� POLÍTICA PRINCIPAL: Tienes {dias_por_antiguedad} días de vacaciones anuales")
-    
-    # Nueva política: Se recomienda incluir fines de semana (informativo)
-    politicas_info.append("� RECOMENDACIÓN: Incluye fines de semana en tus vacaciones para cumplir mejor la política anual")
-    
-    # Política: Flexibilidad en fechas
-    politicas_info.append("✅ FLEXIBILIDAD: Puedes elegir cualquier período de fechas")
-    
-    # Política: Aviso previo
-    politicas_info.append("ℹ️ Mínimo 15 días de aviso previo para solicitudes")
-    
-    # Alerta si quedan pocos días
-    if dias_restantes_periodo <= 5:
-        politicas_info.append("🚨 Solo quedan {} días disponibles en este período".format(dias_restantes_periodo))
-    
-    # Alerta si se acerca la fecha límite
-    dias_hasta_limite = (fecha_limite - hoy).days
-    if dias_hasta_limite <= 60:
-        politicas_info.append("⏰ Fecha límite para tomar vacaciones: {} (en {} días)".format(
-            fecha_limite.strftime("%d/%m/%Y"), dias_hasta_limite
-        ))
+    # Obtener contexto de vacaciones
+    contexto_vacaciones = _obtener_contexto_vacaciones(empleado)
     
     if request.method == 'POST':
         form = SolicitudVacacionesForm(request.POST)
         if form.is_valid():
             solicitud = form.save(commit=False)
             solicitud.empleado = empleado
-            
-            # Validar que la fecha de inicio no sea anterior a hoy
-            if solicitud.fecha_inicio < date.today():
-                messages.error(request, 'La fecha de inicio no puede ser anterior a hoy.')
-                return render(request, 'empleados/nueva_solicitud_vacaciones.html', {
-                    'form': form, 
-                    'empleado': empleado,
-                    'dias_restantes_periodo': dias_restantes_periodo,
-                    'dias_restantes_total': dias_restantes_total,
-                    'dias_por_antiguedad': dias_por_antiguedad,
-                    'fecha_limite': fecha_limite,
-                    'politicas_info': politicas_info,
-                    'dias_tomados_periodo': dias_tomados_periodo,
-                    'antiguedad_dias': antiguedad.days if antiguedad else 0
-                })
-            
-            # Validar que la fecha de fin no sea anterior a la de inicio
-            if solicitud.fecha_fin < solicitud.fecha_inicio:
-                messages.error(request, 'La fecha de fin no puede ser anterior a la fecha de inicio.')
-                return render(request, 'empleados/nueva_solicitud_vacaciones.html', {
-                    'form': form, 
-                    'empleado': empleado,
-                    'dias_restantes_periodo': dias_restantes_periodo,
-                    'dias_restantes_total': dias_restantes_total,
-                    'dias_por_antiguedad': dias_por_antiguedad,
-                    'fecha_limite': fecha_limite,
-                    'politicas_info': politicas_info,
-                    'dias_tomados_periodo': dias_tomados_periodo,
-                    'antiguedad_dias': antiguedad.days if antiguedad else 0
-                })
-            
+
             # Calcular días calendario usando nueva lógica
             solicitud_temp = SolicitudVacaciones(empleado=empleado)
             solicitud_temp.fecha_inicio = solicitud.fecha_inicio
@@ -505,19 +429,9 @@ def nueva_solicitud_vacaciones(request):
             # Verificar si la nueva validación pasó
             if not validacion['valido']:
                 # Mostrar errores específicos
-                for error in validacion['errores']:
-                    messages.error(request, error)
-                return render(request, 'empleados/nueva_solicitud_vacaciones.html', {
-                    'form': form, 
-                    'empleado': empleado,
-                    'dias_restantes_periodo': dias_restantes_periodo,
-                    'dias_restantes_total': dias_restantes_total,
-                    'dias_por_antiguedad': dias_por_antiguedad,
-                    'fecha_limite': fecha_limite,
-                    'politicas_info': politicas_info,
-                    'dias_tomados_periodo': dias_tomados_periodo,
-                    'antiguedad_dias': antiguedad.days if antiguedad else 0
-                })
+                for error in validacion.get('errores', []):
+                    form.add_error(None, error)
+                # El flujo continuará al renderizado del formulario con errores
             
             # Usar días del período de la nueva validación
             solicitud.dias_solicitados = validacion['dias_periodo']
@@ -531,23 +445,13 @@ def nueva_solicitud_vacaciones(request):
                 messages.warning(request, advertencia)
             
             # Validar que no exceda días restantes del período
-            if solicitud.dias_solicitados > dias_restantes_periodo:
-                messages.error(
-                    request, 
+            if solicitud.dias_solicitados > contexto_vacaciones['dias_restantes_periodo']:
+                form.add_error(
+                    None, 
                     f'No puedes solicitar {solicitud.dias_solicitados} días. '
-                    f'Solo tienes {dias_restantes_periodo} días disponibles en este período.'
+                    f'Solo tienes {contexto_vacaciones["dias_restantes_periodo"]} días disponibles en este período.'
                 )
-                return render(request, 'empleados/nueva_solicitud_vacaciones.html', {
-                    'form': form, 
-                    'empleado': empleado,
-                    'dias_restantes_periodo': dias_restantes_periodo,
-                    'dias_restantes_total': dias_restantes_total,
-                    'dias_por_antiguedad': dias_por_antiguedad,
-                    'fecha_limite': fecha_limite,
-                    'politicas_info': politicas_info,
-                    'dias_tomados_periodo': dias_tomados_periodo,
-                    'antiguedad_dias': antiguedad.days if antiguedad else 0
-                })
+                # El flujo continuará al renderizado del formulario con errores
             
             # Calcular automáticamente el tipo de vacaciones si no se especificó
             if not solicitud.tipo_vacaciones or solicitud.tipo_vacaciones == 'regulares':
@@ -556,42 +460,32 @@ def nueva_solicitud_vacaciones(request):
             # Validar días disponibles según el tipo
             dias_disponibles = empleado.calcular_dias_disponibles()
             if solicitud.dias_solicitados > dias_disponibles:
-                messages.error(
-                    request, 
+                form.add_error(
+                    None, 
                     f'No puedes solicitar {solicitud.dias_solicitados} días. '
                     f'Según tu tipo de vacaciones ({solicitud.get_tipo_vacaciones_display()}), '
                     f'tienes disponibles máximo {dias_disponibles} días.'
                 )
-                return render(request, 'empleados/nueva_solicitud_vacaciones.html', {
-                    'form': form, 
-                    'empleado': empleado,
-                    'dias_restantes_periodo': dias_restantes_periodo,
-                    'dias_restantes_total': dias_restantes_total,
-                    'dias_por_antiguedad': dias_por_antiguedad,
-                    'fecha_limite': fecha_limite,
-                    'politicas_info': politicas_info,
-                    'dias_tomados_periodo': dias_tomados_periodo,
-                    'antiguedad_dias': antiguedad.days if antiguedad else 0
-                })
-            
-            solicitud.save()
-            
-            # Enviar notificación por email a los responsables de aprobar
-            from .utils import enviar_notificacion_nueva_solicitud_vacaciones
-            try:
-                if enviar_notificacion_nueva_solicitud_vacaciones(solicitud):
-                    messages.success(request, 'Solicitud de vacaciones enviada exitosamente. Se ha notificado a los responsables de la aprobación.')
-                else:
+                # El flujo continuará al renderizado del formulario con errores
+
+            if form.is_valid(): # Re-validar después de añadir errores manualmente
+                solicitud.save()
+                
+                # Enviar notificación por email a los responsables de aprobar
+                from .utils import enviar_notificacion_nueva_solicitud_vacaciones
+                try:
+                    if enviar_notificacion_nueva_solicitud_vacaciones(solicitud):
+                        messages.success(request, 'Solicitud de vacaciones enviada exitosamente. Se ha notificado a los responsables de la aprobación.')
+                    else:
+                        messages.success(request, 'Solicitud de vacaciones enviada exitosamente.')
+                        messages.warning(request, 'No se pudo enviar la notificación por email. Tu solicitud fue registrada correctamente.')
+                except Exception as e:
                     messages.success(request, 'Solicitud de vacaciones enviada exitosamente.')
-                    messages.warning(request, 'No se pudo enviar la notificación por email. Tu solicitud fue registrada correctamente.')
-            except Exception as e:
-                messages.success(request, 'Solicitud de vacaciones enviada exitosamente.')
-                messages.warning(request, 'Hubo un problema enviando la notificación por email, pero tu solicitud fue registrada correctamente.')
-            
-            return redirect('lista_solicitudes_vacaciones')
+                    messages.warning(request, 'Hubo un problema enviando la notificación por email, pero tu solicitud fue registrada correctamente.')
+                
+                return redirect('lista_solicitudes_vacaciones')
     else:
         form = SolicitudVacacionesForm()
-        
         # Pre-calcular el tipo de vacaciones para mostrar en el formulario
         solicitud_temp = SolicitudVacaciones()
         solicitud_temp.empleado = empleado
@@ -601,14 +495,8 @@ def nueva_solicitud_vacaciones(request):
     contexto = {
         'form': form,
         'empleado': empleado,
-        'dias_restantes_periodo': dias_restantes_periodo,
-        'dias_restantes_total': dias_restantes_total,
-        'dias_por_antiguedad': dias_por_antiguedad,
-        'fecha_limite': fecha_limite,
-        'politicas_info': politicas_info,
-        'dias_tomados_periodo': dias_tomados_periodo,
-        'antiguedad_dias': antiguedad.days if antiguedad else 0,
-        'user': request.user
+        'user': request.user,
+        **contexto_vacaciones
     }
     
     return render(request, 'empleados/nueva_solicitud_vacaciones.html', contexto)

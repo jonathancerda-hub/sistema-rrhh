@@ -63,8 +63,7 @@ source venv/bin/activate  # En Windows: venv\Scripts\activate
 
 ### 3. Instalar dependencias
 ```bash
-pip install django==5.2.5
-pip install pillow==10.4.0
+pip install -r requirements.txt
 ```
 
 ### 4. Configurar base de datos

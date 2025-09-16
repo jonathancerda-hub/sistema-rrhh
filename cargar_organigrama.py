@@ -8,7 +8,7 @@ import unicodedata
 import re
 
 # Configurar Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'nucleo_rrhh.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'nucleo_rrhh.settings_production')
 django.setup()
 
 from django.contrib.auth.models import User
@@ -180,7 +180,7 @@ def cargar_empleados_desde_csv():
     # Mostrar estadísticas finales
     total_users = User.objects.count()
     total_empleados = Empleado.objects.count()
-    managers = Empleado.objects.filter(equipo__isnull=False).distinct().count()  # Empleados que tienen equipo
+    managers = Empleado.objects.filter(user__is_staff=True, es_rrhh=False).count()
     rrhh = Empleado.objects.filter(es_rrhh=True).count()
     
     print(f"\n📈 ESTADÍSTICAS DEL SISTEMA:")
