@@ -157,3 +157,15 @@ if os.environ.get('EMAIL_HOST'):
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     DEFAULT_FROM_EMAIL = 'Sistema RRHH <noreply@empresa.com>'
+
+# --- Supabase Storage for Media Files ---
+SUPABASE_URL = os.environ.get('SUPABASE_URL')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
+SUPABASE_BUCKET = os.environ.get('SUPABASE_BUCKET')
+
+if SUPABASE_URL and SUPABASE_KEY and SUPABASE_BUCKET:
+    # Configuración para archivos de medios (subidos por usuarios)
+    DEFAULT_FILE_STORAGE = 'storages.backends.supabase.SupabaseStorage'
+    # Configuración para archivos estáticos (opcional, pero recomendado)
+    # STATICFILES_STORAGE = 'storages.backends.supabase.SupabaseStorage'
+    # Las variables de Supabase se leen automáticamente por django-storages
