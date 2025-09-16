@@ -5,15 +5,13 @@ from . import views_notificaciones
 
 urlpatterns = [
     # URLs principales del sistema
-    path('', views.inicio_empleado, name='inicio'),
-    path('inicio/', views.inicio_empleado, name='inicio_empleado'),  # Alias
+    path('', views.inicio_empleado, name='inicio_empleado'), # Raíz de la app: /empleados/
     path('login/', views.login_empleado, name='login_empleado'),
     path('logout/', views.logout_empleado, name='logout_empleado'),
     path('perfil/', views.perfil_empleado, name='perfil_empleado'),
     
     # Solicitudes de vacaciones
-    path('solicitud/', views.nueva_solicitud_vacaciones, name='nueva_solicitud'),
-    path('solicitud/nueva/', views.nueva_solicitud_vacaciones, name='nueva_solicitud_vacaciones'),
+    path('solicitud/nueva/', views.nueva_solicitud_vacaciones, name='nueva_solicitud_vacaciones'), # URL única para crear
     path('solicitudes/', views.lista_solicitudes_vacaciones, name='lista_solicitudes_vacaciones'),
     path('solicitudes/detalle/<int:solicitud_id>/', views.detalle_solicitud_vacaciones, name='detalle_solicitud_vacaciones'),
     path('solicitudes/<int:solicitud_id>/cancelar/', views.cancelar_solicitud_vacaciones, name='cancelar_solicitud_vacaciones'),
@@ -47,9 +45,4 @@ urlpatterns = [
     path('rrhh/empleados/<int:empleado_id>/offboarding/', views.rrhh_offboarding_empleado, name='rrhh_offboarding_empleado'),
     # Configuración de notificaciones
     path('rrhh/configurar-notificaciones/', views_notificaciones.configurar_notificaciones, name='configurar_notificaciones'),
-    # URLs adicionales de RRHH
-    path('rrhh/control-vacaciones/', views.rrhh_control_vacaciones, name='rrhh_control_vacaciones'),
-    path('rrhh/historial/vacaciones/', views.rrhh_historial_vacaciones, name='rrhh_historial_vacaciones'),
-    path('rrhh/historial/nuevo-colaborador/', views.rrhh_historial_nuevo_colaborador, name='rrhh_historial_nuevo_colaborador'),
-    path('rrhh/notificar-manager/<int:empleado_id>/', views.rrhh_notificar_manager_vacaciones, name='rrhh_notificar_manager_vacaciones'),
 ]

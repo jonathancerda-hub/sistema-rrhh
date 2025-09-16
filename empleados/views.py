@@ -118,32 +118,41 @@ def crear_empleado_desde_solicitud(solicitud, procesado_por):
     except Exception as e:
         raise Exception(f"Error al crear empleado: {str(e)}")
 
-def login_empleado(request):
-    """
-    Vista personalizada para el login de empleados
-    """
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        
-        user = authenticate(request, username=username, password=password)
-        
-        if user is not None:
-            login(request, user)
-            messages.success(request, f'¡Bienvenido, {user.username}!')
-            return redirect('inicio_empleado')
-        else:
-            messages.error(request, 'Usuario o contraseña incorrectos. Inténtalo de nuevo.')
-    
-    return render(request, 'empleados/login.html')
-
 def logout_empleado(request):
     """
     Vista para cerrar sesión
     """
     logout(request)
     messages.success(request, 'Has cerrado sesión exitosamente.')
-    return redirect('login_empleado')
+    return redirect('login')
+
+
+def login_empleado(request):
+    """
+    Vista para iniciar sesión de empleados. Maneja POST con username y password.
+    Si el usuario existe y tiene perfil de Empleado, inicia sesión.
+    """
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            try:
+                # Verificar que exista un perfil de Empleado asociado
+                empleado = Empleado.objects.get(email=user.email)
+            except Empleado.DoesNotExist:
+                messages.error(request, 'Tu usuario no tiene un perfil de empleado asociado. Contacta a RRHH.')
+                return redirect('login_empleado')
+
+            login(request, user)
+            messages.success(request, 'Has iniciado sesión correctamente.')
+            return redirect('inicio_empleado')
+        else:
+            messages.error(request, 'Usuario o contraseña incorrectos.')
+            return redirect('login_empleado')
+
+    # GET: renderizar formulario de login
+    return render(request, 'empleados/login.html')
 
 @login_required
 def inicio_empleado(request):
@@ -261,8 +270,8 @@ def inicio_empleado(request):
     except Empleado.DoesNotExist:
         # Si el usuario no tiene perfil de empleado, lo redirigimos al login
         logout(request)
-        messages.warning(request, 'Tu usuario no tiene un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        messages.warning(request, 'Tu usuario no tiene un perfil de empleado asociado. Contacta a RRHH.')
+        return redirect('login')
 
 @login_required
 def perfil_empleado(request):
@@ -327,7 +336,7 @@ def lista_solicitudes_vacaciones(request):
         
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
     
     return render(request, 'empleados/solicitudes_vacaciones.html', contexto)
 
@@ -404,7 +413,7 @@ def nueva_solicitud_vacaciones(request):
         empleado = Empleado.objects.get(email=request.user.email)
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
     
     # Obtener contexto de vacaciones
     contexto_vacaciones = _obtener_contexto_vacaciones(empleado)
@@ -518,7 +527,7 @@ def detalle_solicitud_vacaciones(request, solicitud_id):
         
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
     
     return render(request, 'empleados/detalle_solicitud_vacaciones.html', contexto)
 
@@ -540,7 +549,7 @@ def cancelar_solicitud_vacaciones(request, solicitud_id):
             
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
 
     return redirect('lista_solicitudes_vacaciones')
 
@@ -644,7 +653,7 @@ def manager_dashboard(request):
         
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
     
     return render(request, 'empleados/manager_dashboard.html', contexto)
 
@@ -706,7 +715,7 @@ def procesar_solicitud_manager(request, solicitud_id):
         
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
     
     return render(request, 'empleados/procesar_solicitud_manager.html', contexto)
 
@@ -751,7 +760,7 @@ def equipo_manager(request):
 
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
 
     return render(request, 'empleados/equipo_manager.html', contexto)
 
@@ -826,7 +835,7 @@ def rrhh_dashboard(request):
         
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
     
     return render(request, 'empleados/rrhh_dashboard.html', contexto)
 
@@ -837,7 +846,7 @@ def nueva_solicitud_nuevo_colaborador(request):
         empleado = Empleado.objects.get(email=request.user.email)
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
 
     # Solo Jefes/Managers pueden crear
     if not empleado.puede_gestionar_equipo:
@@ -887,7 +896,7 @@ def lista_solicitudes_nuevo_colaborador(request):
         empleado = Empleado.objects.get(email=request.user.email)
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
 
     # Si es RRHH ve todas, si no solo las propias
     if empleado.es_empleado_rrhh:
@@ -914,7 +923,7 @@ def procesar_solicitud_nuevo_colaborador_rrhh(request, solicitud_id: int):
         empleado = Empleado.objects.get(email=request.user.email)
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
 
     if not empleado.es_empleado_rrhh:
         messages.error(request, 'No tienes permisos de RRHH.')
@@ -1061,7 +1070,7 @@ def procesar_solicitud_rrhh(request, solicitud_id):
         
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
     
     return render(request, 'empleados/procesar_solicitud_rrhh.html', contexto)
 
@@ -1071,7 +1080,7 @@ def rrhh_historial_vacaciones(request):
         empleado = Empleado.objects.get(email=request.user.email)
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
 
     if not empleado.es_empleado_rrhh:
         messages.error(request, 'No tienes permisos de RRHH para acceder a esta página.')
@@ -1115,7 +1124,7 @@ def rrhh_historial_nuevo_colaborador(request):
         empleado = Empleado.objects.get(email=request.user.email)
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
 
     if not empleado.es_empleado_rrhh:
         messages.error(request, 'No tienes permisos de RRHH para acceder a esta página.')
@@ -1161,7 +1170,7 @@ def rrhh_control_vacaciones(request):
         empleado = Empleado.objects.get(email=request.user.email)
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
 
     if not empleado.es_empleado_rrhh:
         messages.error(request, 'No tienes permisos de RRHH para acceder a esta página.')
@@ -1365,7 +1374,7 @@ def rrhh_editar_empleado(request, empleado_id):
             return redirect('inicio_empleado')
     except Empleado.DoesNotExist:
         messages.error(request, 'Empleado no encontrado.')
-        return redirect('login_empleado')
+        return redirect('login')
 
     empleado = get_object_or_404(Empleado, id=empleado_id)
 
@@ -1434,7 +1443,7 @@ def rrhh_offboarding_empleado(request, empleado_id):
             return redirect('inicio_empleado')
     except Empleado.DoesNotExist:
         messages.error(request, 'Empleado no encontrado.')
-        return redirect('login_empleado')
+        return redirect('login')
 
     empleado = get_object_or_404(Empleado, id=empleado_id)
 
@@ -1498,7 +1507,7 @@ def ver_perfil_empleado(request, empleado_id):
         
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
 
 
 @login_required 
@@ -1544,7 +1553,7 @@ def ver_solicitudes_empleado(request, empleado_id):
         
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')
 
 
 @login_required
@@ -1582,4 +1591,4 @@ def detalle_solicitud_empleado(request, empleado_id, solicitud_id):
         
     except Empleado.DoesNotExist:
         messages.error(request, 'No tienes un perfil de empleado asociado.')
-        return redirect('login_empleado')
+        return redirect('login')

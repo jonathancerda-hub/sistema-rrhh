@@ -1,9 +1,10 @@
-dj-database-url==2.1.0
-Django==5.2.5
-gunicorn==21.2.0
-Pillow==10.4.0
-psycopg2-binary==2.9.7
-pytz==2023.3
-whitenoise==6.5.0
-django-storages
-supabase
+# Dependencias principales de Django
+Django>=4.2
+
+# Conexión a base de datos (PostgreSQL/Supabase)
+dj-database-url
+psycopg2-binary
+python-dotenv
+
+# Almacenamiento de archivos en Supabase
+django-storages[supabase]

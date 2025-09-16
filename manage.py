@@ -6,7 +6,12 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'nucleo_rrhh.settings')
+    # Intenta usar 'settings_local' por defecto.
+    # En Render, la variable DJANGO_SETTINGS_MODULE se establecerá a 'settings_production'.
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'nucleo_rrhh.settings_local')
+    
+    print(f"--- Usando settings: {os.environ.get('DJANGO_SETTINGS_MODULE')} ---")
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

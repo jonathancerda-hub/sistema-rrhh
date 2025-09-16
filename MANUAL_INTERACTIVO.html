@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual Interactivo - Sistema RRHH Agrovet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #714B67; /* Odoo Primary */
+            --secondary-color: #21B799; /* Odoo Ready Partner Green */
+            --accent-color: #E4A900; /* Odoo Gold */
+            --background-color: #F9F9F9;
+            --sidebar-bg: #FFFFFF;
+            --text-color: #4A4A4A;
+            --sidebar-text: #FFFFFF;
+            --sidebar-header: #714B67;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--background-color);
+            margin: 0;
+            color: var(--text-color);
+        }
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 260px;
+            background: var(--primary-color);
+            color: var(--sidebar-text);
+            padding: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar h2 {
+            font-size: 1.5em;
+            font-weight: 700;
+            padding: 24px;
+            margin: 0;
+            background-color: var(--sidebar-header);
+            color: #FFFFFF;
+            text-align: center;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 15px 0;
+            margin: 0;
+        }
+        .sidebar a {
+            display: block;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            padding: 15px 25px;
+            font-weight: 500;
+            border-left: 5px solid transparent;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .sidebar a.active, .sidebar a:hover {
+            background: #875A7B;
+            border-left-color: var(--accent-color);
+        }
+        .main {
+            flex: 1;
+            padding: 40px;
+        }
+        h1, h2, h3 {
+            color: var(--primary-color);
+        }
+        section {
+            margin-bottom: 40px;
+            display: none; /* Hidden by default */
+        }
+        .card {
+            background: #FFFFFF;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .btn {
+            background: var(--secondary-color);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #1aa383;
+        }
+        .faq {
+            background: #FFFBEB;
+            border-left: 4px solid var(--accent-color);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .code {
+            background: #2d2d2d;
+            color: #f1f1f1;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        @media (max-width: 900px) {
+            .layout { flex-direction: column; }
+            .sidebar { width: 100%; }
+            .main { padding: 20px; }
+        }
+    </style>
+    <script>
+        function showSection(id) {
+            document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+            document.getElementById(id).style.display = 'block';
+            var link = document.querySelector('.sidebar a[data-section="' + id + '"]');
+            if (link) link.classList.add('active');
+        }
+        window.onload = function() {
+            showSection('bienvenida');
+        };
+    </script>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <h2>Manual RRHH</h2>
+            <ul>
+                <li><a href="#" data-section="bienvenida" onclick="showSection('bienvenida')">Inicio</a></li>
+                <li><a href="#" data-section="run_app" onclick="showSection('run_app')">Correr Aplicación</a></li>
+                <li><a href="#" data-section="usuario" onclick="showSection('usuario')">Manual de Usuario</a></li>
+                <li><a href="#" data-section="admin" onclick="showSection('admin')">Administración</a></li>
+                <li><a href="#" data-section="dev" onclick="showSection('dev')">Desarrollador</a></li>
+                <li><a href="#" data-section="faq" onclick="showSection('faq')">Preguntas Frecuentes</a></li>
+                <li><a href="#" data-section="soporte" onclick="showSection('soporte')">Soporte</a></li>
+            </ul>
+        </aside>
+        <main class="main">
+            <section id="bienvenida">
+                <h1>👋 Bienvenido al Manual Interactivo RRHH Agrovet</h1>
+                <div class="card">
+                    <p>Este manual te ayudará a usar, administrar y desarrollar el sistema RRHH Agrovet. Usa la barra lateral para navegar por los temas.</p>
+                    <a class="btn" href="#" onclick="showSection('usuario')">Ir al Manual de Usuario</a>
+                </div>
+            </section>
+            <section id="run_app">
+                <h2>🚀 Correr Aplicación Localmente</h2>
+                <div class="card">
+                    <h3>Pre-requisitos</h3>
+                    <p>Asegúrate de tener Python y pip instalados.</p>
+                    <h3>Pasos</h3>
+                    <ol>
+                        <li>Clona el repositorio.</li>
+                        <li>Crea un entorno virtual: <code class="code">python -m venv venv</code></li>
+                        <li>Activa el entorno: <code class="code">source venv/bin/activate</code> (Linux/Mac) o <code class="code">venv\Scripts\activate</code> (Windows)</li>
+                        <li>Instala las dependencias: <code class="code">pip install -r requirements.txt</code></li>
+                        <li>Corre las migraciones: <code class="code">python manage.py migrate</code></li>
+                        <li>Inicia el servidor: <code class="code">python manage.py runserver</code></li>
+                    </ol>
+                </div>
+            </section>
+            <section id="usuario">
+                <h2>👤 Manual de Usuario</h2>
+                <div class="card">
+                    <h3>Ingreso al Sistema</h3>
+                    <p>Accede a <b>http://127.0.0.1:8000/</b> e ingresa tu usuario y contraseña.</p>
+                    <ul>
+                        <li>Usuario RRHH: <span class="code">rrhh.admin</span></li>
+                        <li>Contraseña: <span class="code">Agrovet2025</span></li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Solicitar Vacaciones</h3>
+                    <ol>
+                        <li>Haz clic en “Solicitar Vacaciones”.</li>
+                        <li>Completa el formulario y selecciona fechas.</li>
+                        <li>El sistema calcula los días disponibles automáticamente.</li>
+                        <li>Envía la solicitud y espera aprobación.</li>
+                    </ol>
+                </div>
+            </section>
+            <section id="admin">
+                <h2>🛡️ Manual de Administración</h2>
+                <div class="card">
+                    <h3>Gestión de Empleados</h3>
+                    <p>Accede al panel de administración: <code class="code">/admin/</code></p>
+                    <ul>
+                        <li>Crea, edita o elimina empleados y usuarios.</li>
+                        <li>Filtra por área, puesto, estado, fechas.</li>
+                    </ul>
+                </div>
+            </section>
+            <section id="dev">
+                <h2>🛠️ Manual de Desarrollador</h2>
+                <div class="card">
+                    <h3>Estructura del Proyecto</h3>
+                    <div class="code">
+empleados/      # App principal
+nucleo_rrhh/    # Configuración Django
+media/          # Archivos subidos
+static/         # Archivos estáticos
+requirements.txt # Dependencias
+manage.py       # Script de gestión
+                    </div>
+                </div>
+            </section>
+            <section id="faq">
+                <h2>❓ Preguntas Frecuentes</h2>
+                <div class="faq">
+                    <b>¿No puedo ingresar?</b><br>
+                    Verifica usuario y contraseña. Si olvidaste la contraseña, solicita el restablecimiento a RRHH.
+                </div>
+            </section>
+            <section id="soporte">
+                <h2>📞 Soporte</h2>
+                <div class="card">
+                    <p>Para soporte técnico o funcional, contacta a:</p>
+                    <ul>
+                        <li>Email: <b>rrhh@agrovetmarket.com</b></li>
+                    </ul>
+                    <a class="btn" href="#" onclick="showSection('bienvenida')">Volver al inicio</a>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
