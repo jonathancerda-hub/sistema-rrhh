@@ -11,6 +11,11 @@ python -m pip install --upgrade pip
 echo "📦 Instalando dependencias..."
 pip install -r requirements.txt
 
+# --- Debugging: Imprimir variables de entorno ---
+echo "🔍 Imprimiendo variables de entorno disponibles..."
+printenv | grep "DATABASE_URL" || echo "DATABASE_URL no encontrada"
+printenv | grep "SECRET_KEY" || echo "SECRET_KEY no encontrada"
+
 # --- Validación de Variables de Entorno ---
 echo "🔧 Configuración actual:"
 echo "DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-No configurado}"
