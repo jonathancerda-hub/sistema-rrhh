@@ -1,52 +1,22 @@
-# Entornos virtuales
+# Entorno Virtual
 venv/
-env/
-.venv/
 
-# Archivos de caché de Python
+# Base de datos de desarrollo
+*.sqlite3
+db.sqlite3
+
+# Archivos compilados de Python
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
 
-# Bases de datos locales
-*.sqlite3
-*.db
+# Archivos de configuración sensibles
+.env
 
-# Archivos subidos por los usuarios (media)
+# Directorios de archivos estáticos y de medios generados por Django
+# Estos se generan en el servidor (como en Render) con collectstatic
+/staticfiles/
 /media/
 
-# Archivos estáticos recolectados por Django
-/staticfiles/
-
-# Archivos de configuración local o secretos (si los usas en el futuro)
-.env
-local_settings.py
-
-# Archivos de sistema operativo
+# Archivos del sistema operativo
 .DS_Store
 Thumbs.db
-
-# Archivos de IDEs
-.vscode/
-.idea/
-
-# Logs
-*.log
-
-# Reportes de cobertura de tests
-.coverage
-htmlcov/
-
-# Archivos de dependencias de Windows
-pip-delete-this-directory.txt
-
-# Archivos de descargas (para evitar subir el CSV del organigrama)
-*.csv
-!organigrama - Hoja 1.csv
-
-# Archivos de documentación y notas (excepto README y el Manual)
-*.md
-!README.md
-*.html
-!MANUAL_USUARIO.html
