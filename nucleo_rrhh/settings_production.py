@@ -110,6 +110,8 @@ X_FRAME_OPTIONS = 'DENY'
 
 # Use environment variable for secret key in production
 SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    raise ValueError("CRITICAL: No se ha configurado la variable de entorno SECRET_KEY en Render.")
 
 # Logging configuration optimizado
 LOGGING = {
