@@ -25,14 +25,20 @@ ALLOWED_HOSTS = [
     '*'  # Temporal para debugging
 ]
 
-# --- Configuración de Base de Datos para Producción (Supabase) ---
-# URL de conexión a tu base de datos en Supabase.
-SUPABASE_DATABASE_URL = "postgresql://postgres:3jbxqfv$2gyW$yG@db.hyfftznlycaojigtpvto.supabase.co:5432/postgres"
-print("✅ Configurando la base de datos para producción (Supabase)...")
+# --- Configuración de Base de Datos para Producción ---
+# Lee la URL de la base de datos desde las variables de entorno de Render.
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if not DATABASE_URL:
+    raise ValueError("CRITICAL: No se ha configurado la variable de entorno DATABASE_URL en Render.")
+
+# Verificación para asegurar que se está usando la URL del Pooler de Supabase
+if '.pooler.supabase.com' not in DATABASE_URL:
+    raise ValueError(f"CRITICAL: La DATABASE_URL no parece ser la URL del Connection Pooler de Supabase. "
+                     f"Asegúrate de usar la URL que contiene '.pooler.supabase.com'. URL detectada: {DATABASE_URL[:70]}...")
  
 DATABASES = {
     'default': dj_database_url.config(
-        default=SUPABASE_DATABASE_URL,
+        default=DATABASE_URL,
         conn_max_age=600,      # Reutilizar conexiones por 10 minutos
         conn_health_checks=True # Habilitar chequeos de salud de la conexión
     )
@@ -40,6 +46,7 @@ DATABASES = {
 
 # Static files configuration
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [] # Anular STATICFILES_DIRS del settings base para producción
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Whitenoise configuration
