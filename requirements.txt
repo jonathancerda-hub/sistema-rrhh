@@ -8,3 +8,6 @@ python-dotenv
 
 # Almacenamiento de archivos en Supabase
 django-storages[supabase]
+ 
+# Timezone library required by some environments / Django utilities
+pytz>=2023.3
