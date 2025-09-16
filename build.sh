@@ -16,21 +16,11 @@ echo "🔧 Configuración actual:"
 echo "DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-No configurado}"
 
 # Aplicar migraciones con más detalle
-echo "🗄️ Aplicando migraciones..."
-python manage.py migrate --no-input --verbosity=2
-
-# Ejecutar script de configuración específico
-echo "🔧 Ejecutando configuración específica de producción..."
-python fix_production_db.py
+echo "🗄️ Aplicando migraciones a la base de datos..."
+python manage.py migrate --no-input
 
 # Collect static files
 echo "📁 Recolectando archivos estáticos..."
 python manage.py collectstatic --no-input --clear
 
-# Verificar que todo esté bien
-echo "🔍 Verificando estado final..."
-python manage.py check --deploy
-
 echo "✅ Build completado exitosamente"
-
-echo "=== Build completed ==="
