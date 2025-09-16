@@ -43,6 +43,7 @@ pip-delete-this-directory.txt
 
 # Archivos de descargas (para evitar subir el CSV del organigrama)
 *.csv
+!organigrama - Hoja 1.csv
 
 # Archivos de documentación y notas (excepto README y el Manual)
 *.md
