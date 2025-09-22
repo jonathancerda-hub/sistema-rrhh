@@ -133,6 +133,72 @@ class Empleado(models.Model):
         jerarquias_gestoras = ['director', 'gerente', 'sub_gerente', 'jefe']
         return self.es_manager or self.jerarquia in jerarquias_gestoras or self.es_rrhh
 
+    # ---------- Helpers jerárquicos ----------
+    def get_equipo_directo(self):
+        """
+        Retorna QuerySet con los empleados cuyo manager es este empleado (equipo directo).
+        """
+        return Empleado.objects.filter(manager=self)
+
+    def get_equipo_extendido(self, max_depth=10):
+        """
+        Retorna una lista plana con el equipo extendido (recursivo) hasta max_depth niveles.
+        Evita ciclos mediante un set de IDs visitados.
+        """
+        resultados = []
+        visitados = set()
+
+        def _recorrer(nodo, profundidad):
+            if profundidad > max_depth or nodo.id in visitados:
+                return
+            visitados.add(nodo.id)
+            directos = list(Empleado.objects.filter(manager=nodo))
+            for miembro in directos:
+                resultados.append(miembro)
+                _recorrer(miembro, profundidad + 1)
+
+        _recorrer(self, 1)
+        return resultados
+
+    def get_gerente(self):
+        """
+        Retorna el gerente más cercano en la jerarquía hacia arriba (primer 'gerente' o 'director').
+        Si el manager directo no existe, retorna None.
+        """
+        actual = self
+        while actual and actual.manager:
+            if actual.manager.jerarquia in ['gerente', 'director']:
+                return actual.manager
+            actual = actual.manager
+        return None
+
+    def get_director(self):
+        """
+        Retorna el director asociado al empleado recorriendo hacia arriba por `manager`.
+        """
+        actual = self
+        while actual and actual.manager:
+            if actual.manager.jerarquia == 'director':
+                return actual.manager
+            actual = actual.manager
+        return None
+
+    def get_team_tree(self, max_depth=5):
+        """
+        Retorna una estructura tipo árbol (dict) con el equipo del empleado, útil para render en templates.
+        { 'empleado': <Empleado>, 'directos': [ {...}, ... ] }
+        """
+        def _build(node, depth):
+            if depth < 0:
+                return {'empleado': node, 'directos': []}
+            hijos = Empleado.objects.filter(manager=node)
+            return {
+                'empleado': node,
+                'directos': [_build(h, depth - 1) for h in hijos]
+            }
+
+        return _build(self, max_depth)
+
     def calcular_dias_disponibles(self):
         """
         Calcula días de vacaciones disponibles según la política de la empresa.
@@ -288,7 +354,7 @@ class SolicitudVacaciones(models.Model):
     def validar_periodo_vacaciones(self, fecha_inicio, fecha_fin):
         """
         Valida período de vacaciones con política simple:
-        - El empleado tiene X días totales (30, 35, etc. según antigüedad)
+    - El empleado tiene X días totales (30 por período; la política actual es 30 días por período cumplido)
         - Debe incluir fines de semana en sus períodos (política educativa)
         - Se cuentan los días solicitados contra el total disponible
         """

@@ -20,6 +20,7 @@ urlpatterns = [
     # URLs para Managers
     path('manager/', views.manager_dashboard, name='manager_dashboard'),
     path('manager/equipo/', views.equipo_manager, name='equipo_manager'),
+    path('manager/equipo/asignar/', views.asignar_trabajador_a_equipo, name='asignar_trabajador_a_equipo'),
     path('manager/solicitud/<int:solicitud_id>/procesar/', views.procesar_solicitud_manager, name='procesar_solicitud_manager'),
     path('manager/empleado/<int:empleado_id>/perfil/', views.ver_perfil_empleado, name='ver_perfil_empleado'),
     path('manager/empleado/<int:empleado_id>/solicitudes/', views.ver_solicitudes_empleado, name='ver_solicitudes_empleado'),

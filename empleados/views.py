@@ -205,6 +205,17 @@ def inicio_empleado(request):
         
         # Días restantes totales
         dias_restantes_total = max(0, dias_por_antiguedad - dias_tomados_total)
+
+        # --- PRUEBA: forzar 30 días restantes para todos (temporal) ---
+        # El usuario solicitó que durante la prueba todos los empleados
+        # muestren 30 días restantes asumiendo que empiezan el período.
+        try:
+            # Forzamos a 30 para la vista de inicio (prueba temporal)
+            dias_restantes_periodo = 30
+            dias_restantes_total = 30
+        except Exception:
+            # Si por alguna razón falla, mantenemos el valor calculado originalmente
+            pass
         
         # Calcular fecha límite para tomar vacaciones (generalmente 6 meses después del período)
         fecha_limite = fin_periodo + timedelta(days=180)  # 6 meses después
@@ -250,7 +261,13 @@ def inicio_empleado(request):
             'dias_tomados_periodo': dias_tomados_periodo,
             'antiguedad_dias': antiguedad.days if antiguedad else 0,
             'solicitudes_pendientes_empleado': solicitudes_pendientes_empleado.count(),
-            'user': request.user
+            'user': request.user,
+            # Información de equipo/jerarquía
+            'equipo_directo': list(empleado.get_equipo_directo()),
+            'equipo_extendido': empleado.get_equipo_extendido(),
+            'gerente': empleado.get_gerente(),
+            'director': empleado.get_director(),
+            'team_tree': empleado.get_team_tree(max_depth=4)
         }
         
         return render(request, 'empleados/inicio.html', contexto)
@@ -362,6 +379,15 @@ def _obtener_contexto_vacaciones(empleado):
 
     dias_restantes_periodo = max(0, dias_otorgados_totales - dias_tomados_periodo)
     dias_restantes_total = max(0, dias_otorgados_totales - dias_tomados_total)
+
+    # --- PRUEBA: forzar 30 días restantes para todos (temporal) ---
+    # Durante la prueba se solicita que todos los empleados muestren 30 días
+    # restantes, asumiendo que empiezan el período actual.
+    try:
+        dias_restantes_periodo = 30
+        dias_restantes_total = 30
+    except Exception:
+        pass
 
     # Calcular fecha límite para tomar vacaciones
     fecha_limite = fin_periodo + timedelta(days=180)
@@ -754,6 +780,75 @@ def equipo_manager(request):
         return redirect('login')
 
     return render(request, 'empleados/equipo_manager.html', contexto)
+
+
+@login_required
+def asignar_trabajador_a_equipo(request):
+    """
+    Permite a un jefe o manager asignar un trabajador a su equipo.
+    POST: empleado_id -> reasigna manager
+    """
+    try:
+        jefe = Empleado.objects.get(email=request.user.email)
+    except Empleado.DoesNotExist:
+        messages.error(request, 'No tienes un perfil de empleado asociado.')
+        return redirect('login')
+
+    # Solo quienes pueden gestionar equipo pueden reasignar
+    if not jefe.puede_gestionar_equipo:
+        messages.error(request, 'No tienes permisos para asignar trabajadores.')
+        return redirect('inicio_empleado')
+
+    from .forms import AsignarManagerForm
+
+    # Posibles empleados para asignar: mismos gerencia, no ser jefe/manager y no ser el mismo jefe
+    posibles = Empleado.objects.filter(
+        gerencia=jefe.gerencia,
+    ).exclude(id=jefe.id)
+
+    # Filtrar para solo permitir jerarquías "normales" (no director/gerente/jefe)
+    jerarquias_normales = ['supervisor', 'coordinador', 'asistente', 'auxiliar']
+    posibles = posibles.filter(jerarquia__in=jerarquias_normales)
+
+    if request.method == 'POST':
+        form = AsignarManagerForm(request.POST, posible_queryset=posibles)
+        if form.is_valid():
+            empleado_obj = form.cleaned_data['empleado_id']
+
+            # Validación extra: evitar ciclos
+            cur = jefe
+            visitados = set()
+            ciclo = False
+            while cur:
+                if cur.id in visitados:
+                    ciclo = True
+                    break
+                visitados.add(cur.id)
+                cur = cur.manager
+
+            if ciclo or empleado_obj.id == jefe.id:
+                messages.error(request, 'No se puede asignar por riesgo de ciclo o asignarte a ti mismo.')
+                return redirect('equipo_manager')
+
+            # Reasignar manager
+            empleado_obj.manager = jefe
+            empleado_obj.save()
+            messages.success(request, f'{empleado_obj.nombre} {empleado_obj.apellido} ahora forma parte de tu equipo.')
+            return redirect('equipo_manager')
+        else:
+            messages.error(request, 'Formulario inválido. Por favor selecciona un trabajador válido.')
+            return redirect('equipo_manager')
+    else:
+        form = AsignarManagerForm(posible_queryset=posibles)
+
+    contexto = {
+        'empleado': jefe,
+        'form': form,
+        'posibles': posibles,
+        'user': request.user
+    }
+
+    return render(request, 'empleados/asignar_trabajador.html', contexto)
 
 @login_required
 def rrhh_dashboard(request):
@@ -1181,23 +1276,16 @@ def rrhh_control_vacaciones(request):
         # Calcular días tomados
         dias_tomados = sum(s.dias_solicitados for s in solicitudes_aprobadas)
         
-        # Calcular días disponibles según antigüedad
+        # Calcular días disponibles según la política unificada (30 días anuales para todos)
         from datetime import date
         hoy = date.today()
         if emp.fecha_contratacion:
             antiguedad = hoy - emp.fecha_contratacion
-            dias_por_antiguedad = 20  # Base
-            
-            if antiguedad.days >= 365:  # Más de 1 año
-                dias_por_antiguedad = 25
-            if antiguedad.days >= 730:  # Más de 2 años
-                dias_por_antiguedad = 30
-            if antiguedad.days >= 1825:  # Más de 5 años
-                dias_por_antiguedad = 35
         else:
-            # Si no tiene fecha de contratación, asumir días base
             antiguedad = None
-            dias_por_antiguedad = 20
+
+        # Política unificada: todos los empleados tienen 30 días anuales por período
+        dias_por_antiguedad = 30
         
         # Días restantes
         dias_restantes = max(0, dias_por_antiguedad - dias_tomados)

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Asignar Trabajador a Mi Equipo</h2>
+    <p>Manager: <strong>{{ empleado.nombre }} {{ empleado.apellido }}</strong></p>
+
+    <div class="card mt-3 p-3">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.empleado_id.label_tag }}
+                {{ form.empleado_id }}
+            </div>
+            <div>
+                <button class="btn btn-primary" type="submit">Asignar</button>
+                <a href="{% url 'equipo_manager' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

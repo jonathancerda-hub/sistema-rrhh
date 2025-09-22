@@ -648,6 +648,12 @@
                 Miembros del Equipo
             </h2>
 
+            {% if empleado.puede_gestionar_equipo %}
+            <div style="margin-bottom:1rem;">
+                <a href="{% url 'asignar_trabajador_a_equipo' %}" class="btn btn-success">Asignar Trabajador</a>
+            </div>
+            {% endif %}
+
             {% if equipo %}
                 <table class="team-table">
                     <thead>

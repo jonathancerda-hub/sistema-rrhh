@@ -1,0 +1,15 @@
+<div class="team-node">
+    <div class="team-node-header">
+        <strong>{{ node.empleado.nombre }} {{ node.empleado.apellido }}</strong>
+        <small class="text-muted"> - {{ node.empleado.puesto }} ({{ node.empleado.get_jerarquia_display }})</small>
+    </div>
+    {% if node.directos %}
+    <ul class="team-children">
+        {% for child in node.directos %}
+        <li>
+            {% include 'empleados/_team_node.html' with node=child %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>

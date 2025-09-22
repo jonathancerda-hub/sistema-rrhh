@@ -256,3 +256,26 @@ class EmpleadoPerfilForm(forms.ModelForm):
         
         return foto
 
+
+class AsignarManagerForm(forms.Form):
+    """Formulario simple para que un manager/jefe asigne un trabajador a su equipo."""
+    empleado_id = forms.ModelChoiceField(
+        queryset=Empleado.objects.none(),
+        label='Seleccionar trabajador',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+    def __init__(self, *args, **kwargs):
+        posible_queryset = kwargs.pop('posible_queryset', None)
+        super().__init__(*args, **kwargs)
+        if posible_queryset is not None:
+            self.fields['empleado_id'].queryset = posible_queryset
+        else:
+            self.fields['empleado_id'].queryset = Empleado.objects.none()
+
+    def clean_empleado_id(self):
+        empleado = self.cleaned_data.get('empleado_id')
+        if not isinstance(empleado, Empleado):
+            raise forms.ValidationError('Selecciona un trabajador válido.')
+        return empleado
+
