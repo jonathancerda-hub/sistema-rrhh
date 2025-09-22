@@ -135,27 +135,38 @@ class Empleado(models.Model):
 
     def calcular_dias_disponibles(self):
         """
-        Calcula días de vacaciones disponibles según antigüedad.
-        Política simple: días asignados - días utilizados en el año actual
+        Calcula días de vacaciones disponibles según la política de la empresa.
+        Regla implementada:
+        - Cada período anual otorga 30 días.
+        - Todos los empleados reciben el primer período desde el inicio.
+        - Se suman 30 días adicionales solo cuando se cumple un período adicional (aniversario).
+        - Días disponibles = 30 * períodos_totales - días_utilizados (todas las solicitudes aprobadas desde contratación)
         """
         from datetime import date
-        # Política actual: todos los empleados tienen 30 días anuales.
-        dias_por_antiguedad = 30
-        
-        # Obtener días ya utilizados en el año actual
-        año_actual = date.today().year
-        
+        hoy = date.today()
+
+        # Calcular años completos desde la fecha de contratación
+        if self.fecha_contratacion:
+            años_completos = hoy.year - self.fecha_contratacion.year - (
+                1 if (hoy.month, hoy.day) < (self.fecha_contratacion.month, self.fecha_contratacion.day) else 0
+            )
+        else:
+            años_completos = 0
+
+        # Periodos totales: al menos 1 (el período inicial)
+        periodos = max(1, años_completos)
+
+        # Total de días otorgados hasta la fecha
+        total_otorgado = 30 * periodos
+
+        # Sumar todos los días aprobados desde la contratación (histórico)
         solicitudes_aprobadas = SolicitudVacaciones.objects.filter(
             empleado=self,
-            estado='aprobado',
-            fecha_inicio__year=año_actual
+            estado='aprobado'
         )
-        
-        # Sumar días solicitados
         dias_utilizados = sum(s.dias_solicitados for s in solicitudes_aprobadas)
-        
-        # Días disponibles = días por antigüedad - días utilizados
-        return max(0, dias_por_antiguedad - dias_utilizados)
+
+        return max(0, total_otorgado - dias_utilizados)
 
 class SolicitudVacaciones(models.Model):
     ESTADOS_CHOICES = [

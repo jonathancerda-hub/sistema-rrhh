@@ -346,26 +346,29 @@ def _obtener_contexto_vacaciones(empleado):
         if s.fecha_inicio >= inicio_periodo and s.fecha_fin <= fin_periodo
     )
     
-    # Calcular días disponibles según antigüedad
-    antiguedad = None
-    dias_por_antiguedad = 20  # Base
+    # Calcular días disponibles según la nueva política de periodos de 30 días
     if empleado.fecha_contratacion:
-        antiguedad = hoy - empleado.fecha_contratacion
-        if antiguedad.days >= 1825:  # Más de 5 años
-            dias_por_antiguedad = 35
-        elif antiguedad.days >= 730:  # Más de 2 años
-            dias_por_antiguedad = 30
-        elif antiguedad.days >= 365:  # Más de 1 año
-            dias_por_antiguedad = 25
-    
-    dias_restantes_periodo = max(0, dias_por_antiguedad - dias_tomados_periodo)
-    
+        años_completos = hoy.year - empleado.fecha_contratacion.year - (
+            1 if (hoy.month, hoy.day) < (empleado.fecha_contratacion.month, empleado.fecha_contratacion.day) else 0
+        )
+    else:
+        años_completos = 0
+
+    periodos = max(1, años_completos)
+    dias_otorgados_totales = 30 * periodos
+
+    # Días tomados totales (histórico)
+    dias_tomados_total = sum(s.dias_solicitados for s in solicitudes_aprobadas)
+
+    dias_restantes_periodo = max(0, dias_otorgados_totales - dias_tomados_periodo)
+    dias_restantes_total = max(0, dias_otorgados_totales - dias_tomados_total)
+
     # Calcular fecha límite para tomar vacaciones
     fecha_limite = fin_periodo + timedelta(days=180)
     
     # Políticas de vacaciones informativas
     politicas_info = []
-    politicas_info.append(f"💼 POLÍTICA PRINCIPAL: Tienes {dias_por_antiguedad} días de vacaciones anuales")
+    politicas_info.append(f"💼 POLÍTICA PRINCIPAL: Cada período anual otorga 30 días. Períodos completos: {periodos}, total otorgado: {dias_otorgados_totales} días")
     politicas_info.append("💡 RECOMENDACIÓN: Incluye fines de semana en tus vacaciones para cumplir mejor la política anual")
     politicas_info.append("✅ FLEXIBILIDAD: Puedes elegir cualquier período de fechas")
     politicas_info.append("📅 Mínimo 15 días de aviso previo para solicitudes")
@@ -384,12 +387,12 @@ def _obtener_contexto_vacaciones(empleado):
 
     return {
         'dias_restantes_periodo': dias_restantes_periodo,
-        'dias_por_antiguedad': dias_por_antiguedad,
+        'dias_por_antiguedad': 30,
         'fecha_limite': fecha_limite,
         'politicas_info': politicas_info,
         'dias_tomados_periodo': dias_tomados_periodo,
-        'antiguedad_dias': antiguedad.days if antiguedad else 0,
-        'dias_restantes_total': max(0, dias_por_antiguedad - sum(s.dias_solicitados for s in solicitudes_aprobadas)) # Para consistencia
+        'antiguedad_dias': (hoy - empleado.fecha_contratacion).days if empleado.fecha_contratacion else 0,
+        'dias_restantes_total': dias_restantes_total
     }
 
 @login_required
