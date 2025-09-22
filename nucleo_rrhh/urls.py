@@ -21,6 +21,8 @@ urlpatterns = [
     # Usar la plantilla de login dentro de la app empleados para mantener el diseño
     path('login/', auth_views.LoginView.as_view(template_name='empleados/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
+    # Redirigir las URLs de accounts/ que Django puede usar por defecto a nuestras vistas
+    path('accounts/login/', RedirectView.as_view(url='/login/', permanent=False)),
 ]
 
 # Servir archivos de media en desarrollo
