@@ -196,21 +196,9 @@ def inicio_empleado(request):
         # Días tomados totales (para cálculo de antigüedad)
         dias_tomados_total = sum(s.dias_solicitados for s in solicitudes_aprobadas)
         
-        # Calcular días disponibles según antigüedad
-        if empleado.fecha_contratacion:
-            antiguedad = hoy - empleado.fecha_contratacion
-            dias_por_antiguedad = 20  # Base
-            
-            if antiguedad.days >= 1825:  # Más de 5 años
-                dias_por_antiguedad = 35
-            elif antiguedad.days >= 730:  # Más de 2 años
-                dias_por_antiguedad = 30
-            elif antiguedad.days >= 365:  # Más de 1 año
-                dias_por_antiguedad = 25
-        else:
-            # Si no tiene fecha de contratación, asumir días base
-            antiguedad = None
-            dias_por_antiguedad = 20
+        # Política actual: todos los empleados tienen 30 días anuales
+        antiguedad = (hoy - empleado.fecha_contratacion) if empleado.fecha_contratacion else None
+        dias_por_antiguedad = 30
         
         # Días restantes del período actual
         dias_restantes_periodo = max(0, dias_por_antiguedad - dias_tomados_periodo)

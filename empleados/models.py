@@ -45,7 +45,8 @@ class Empleado(models.Model):
     email = models.EmailField(unique=True)
     puesto = models.CharField(max_length=100)
     fecha_contratacion = models.DateField()
-    dias_vacaciones_disponibles = models.IntegerField(default=20, help_text='Días laborables de vacaciones por período')
+    # Política actual: todos los empleados tienen 30 días anuales por defecto
+    dias_vacaciones_disponibles = models.IntegerField(default=30, help_text='Días laborables de vacaciones por período')
     # Nuevos campos para control de días calendario
     dias_vacaciones_calendario = models.IntegerField(
         default=42, 
@@ -138,22 +139,8 @@ class Empleado(models.Model):
         Política simple: días asignados - días utilizados en el año actual
         """
         from datetime import date
-        
-        # Días base según antigüedad
-        if self.fecha_contratacion:
-            hoy = date.today()
-            antiguedad = hoy - self.fecha_contratacion
-            
-            if antiguedad.days >= 1825:  # Más de 5 años
-                dias_por_antiguedad = 35
-            elif antiguedad.days >= 730:  # Más de 2 años
-                dias_por_antiguedad = 30
-            elif antiguedad.days >= 365:  # Más de 1 año
-                dias_por_antiguedad = 25
-            else:
-                dias_por_antiguedad = 20  # Base
-        else:
-            dias_por_antiguedad = 30  # Default
+        # Política actual: todos los empleados tienen 30 días anuales.
+        dias_por_antiguedad = 30
         
         # Obtener días ya utilizados en el año actual
         año_actual = date.today().year
