@@ -60,10 +60,72 @@ class Empleado(models.Model):
         default=0,
         help_text='Cantidad de fines de semana incluidos en vacaciones del año'
     )
-    # Campo para asignar un mánager a cada empleado.
-    manager = models.ForeignKey(
-        'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='equipo'
+    # NOTE: `manager` DB field was removed in favor of explicit hierarchy fields
+    # (director, gerente, jefe). For backward compatibility we expose a
+    # `manager` property (the nearest superior: jefe > gerente > director)
+    # and an `equipo` property that returns direct reports based on the
+    # explicit hierarchy fields. This allows existing code that used
+    # empleado.manager and empleado.equipo to keep working.
+    # Campos explícitos para guardar referencias a niveles de jerarquía
+    director = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='dir_subordinados'
     )
+    gerente = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='ger_subordinados'
+    )
+    jefe = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='jefe_subordinados'
+    )
+    # Compatibilidad: exponer 'manager' y 'equipo' como propiedades que
+    # utilizan los nuevos campos jerárquicos. Esto mantiene compatibilidad
+    # con código que aún usa empleado.manager o empleado.equipo.
+    @property
+    def manager(self):
+        """Retorna el superior inmediato: preferir jefe, luego gerente, luego director."""
+        return self.jefe or self.gerente or self.director
+
+    @manager.setter
+    def manager(self, value):
+        """Compatibilidad para asignar un manager.
+
+        Si se asigna un Empleado, colocamos su id en el campo jerárquico
+        correspondiente (jefe/gerente/director) según su `jerarquia`.
+        Si se asigna None, limpiamos los campos jerárquicos directos.
+        Se usa update() para evitar recursiones en save().
+        """
+        if value is None:
+            Empleado.objects.filter(pk=self.pk).update(jefe_id=None, gerente_id=None, director_id=None)
+            self.jefe = None
+            self.gerente = None
+            self.director = None
+            return
+
+        # value should be an Empleado instance
+        jer = getattr(value, 'jerarquia', None)
+        if jer == 'jefe':
+            Empleado.objects.filter(pk=self.pk).update(jefe_id=value.id)
+            self.jefe = value
+        elif jer == 'gerente':
+            Empleado.objects.filter(pk=self.pk).update(gerente_id=value.id)
+            self.gerente = value
+        elif jer == 'director':
+            Empleado.objects.filter(pk=self.pk).update(director_id=value.id)
+            self.director = value
+        else:
+            # fallback: set jefe_id
+            Empleado.objects.filter(pk=self.pk).update(jefe_id=value.id)
+            self.jefe = value
+        # Recompute propagated values for dependents
+        try:
+            self._recompute_and_propagate()
+        except Exception:
+            # Best-effort: ignore propagation errors here
+            pass
+
+    @property
+    def equipo(self):
+        """QuerySet con los empleados que tienen a este empleado como jefe/gerente/director."""
+        return Empleado.objects.filter(models.Q(jefe=self) | models.Q(gerente=self) | models.Q(director=self))
     # Nuevo campo para identificar usuarios de RRHH
     es_rrhh = models.BooleanField(
         default=False,
@@ -102,6 +164,62 @@ class Empleado(models.Model):
     def __str__(self):
         return f"{self.nombre} {self.apellido}"
 
+    def _compute_hierarchy_ids(self):
+        """
+        Recorre la cadena de managers hacia arriba y devuelve una tupla
+        (director_id, gerente_id, jefe_id) con los ids encontrados o None.
+        """
+        director_id = None
+        gerente_id = None
+        jefe_id = None
+
+        cur = self.manager
+        visited = set()
+        while cur is not None and cur.id not in visited:
+            visited.add(cur.id)
+            if director_id is None and cur.jerarquia == 'director':
+                director_id = cur.id
+            # gerente puede ser gerente o director (tomamos el más cercano)
+            if gerente_id is None and cur.jerarquia in ('gerente', 'director'):
+                gerente_id = cur.id
+            if jefe_id is None and cur.jerarquia == 'jefe':
+                jefe_id = cur.id
+            cur = cur.manager
+
+        return director_id, gerente_id, jefe_id
+
+    def _recompute_and_propagate(self):
+        """
+        Recalcula los campos director/gerente/jefe para este empleado
+        y los propaga recursivamente a sus subordinados directos.
+        Usa actualizaciones en base de datos para evitar recursión en save().
+        """
+        director_id, gerente_id, jefe_id = self._compute_hierarchy_ids()
+
+        # Actualizar en BD si hay cambios
+        updated = False
+        changes = {}
+        if self.director_id != director_id:
+            changes['director_id'] = director_id
+            self.director_id = director_id
+            updated = True
+        if self.gerente_id != gerente_id:
+            changes['gerente_id'] = gerente_id
+            self.gerente_id = gerente_id
+            updated = True
+        if self.jefe_id != jefe_id:
+            changes['jefe_id'] = jefe_id
+            self.jefe_id = jefe_id
+            updated = True
+
+        if updated and changes:
+            Empleado.objects.filter(pk=self.pk).update(**changes)
+
+        # Propagar a subordinados directos (usar equipo derivado de jerarquías)
+        directos = list(self.equipo)
+        for sub in directos:
+            sub._recompute_and_propagate()
+
     @property
     def es_manager(self):
         """
@@ -138,7 +256,8 @@ class Empleado(models.Model):
         """
         Retorna QuerySet con los empleados cuyo manager es este empleado (equipo directo).
         """
-        return Empleado.objects.filter(manager=self)
+        # Devuelve empleados que tienen a este empleado como jefe/gerente/director
+        return self.equipo
 
     def get_equipo_extendido(self, max_depth=10):
         """
@@ -152,7 +271,8 @@ class Empleado(models.Model):
             if profundidad > max_depth or nodo.id in visitados:
                 return
             visitados.add(nodo.id)
-            directos = list(Empleado.objects.filter(manager=nodo))
+            # Buscar directos según campos jerárquicos
+            directos = list(Empleado.objects.filter(models.Q(jefe=nodo) | models.Q(gerente=nodo) | models.Q(director=nodo)))
             for miembro in directos:
                 resultados.append(miembro)
                 _recorrer(miembro, profundidad + 1)
@@ -191,7 +311,7 @@ class Empleado(models.Model):
         def _build(node, depth):
             if depth < 0:
                 return {'empleado': node, 'directos': []}
-            hijos = Empleado.objects.filter(manager=node)
+            hijos = Empleado.objects.filter(models.Q(jefe=node) | models.Q(gerente=node) | models.Q(director=node))
             return {
                 'empleado': node,
                 'directos': [_build(h, depth - 1) for h in hijos]

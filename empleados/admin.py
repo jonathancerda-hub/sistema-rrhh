@@ -4,7 +4,9 @@ from .models import Empleado, SolicitudVacaciones, SolicitudNuevoColaborador
 @admin.register(Empleado)
 class EmpleadoAdmin(admin.ModelAdmin):
     list_display = ['nombre', 'apellido', 'email', 'puesto', 'jerarquia', 'gerencia', 'fecha_contratacion', 'dias_vacaciones_disponibles', 'manager', 'puede_gestionar_equipo', 'puede_solicitar_nuevo_empleado']
-    list_filter = ['puesto', 'jerarquia', 'gerencia', 'fecha_contratacion', 'manager', 'es_rrhh']
+    # 'manager' was removed as a DB field; show it via get_manager and remove from filters
+    list_display = ['nombre', 'apellido', 'email', 'puesto', 'jerarquia', 'gerencia', 'fecha_contratacion', 'dias_vacaciones_disponibles', 'get_manager', 'puede_gestionar_equipo', 'puede_solicitar_nuevo_empleado']
+    list_filter = ['puesto', 'jerarquia', 'gerencia', 'fecha_contratacion', 'es_rrhh']
     search_fields = ['nombre', 'apellido', 'email', 'puesto', 'gerencia', 'jerarquia']
     ordering = ['nombre', 'apellido']
     readonly_fields = ['puede_gestionar_equipo', 'puede_solicitar_nuevo_empleado']
@@ -14,7 +16,8 @@ class EmpleadoAdmin(admin.ModelAdmin):
             'fields': ('nombre', 'apellido', 'email', 'puesto')
         }),
         ('Información Laboral', {
-            'fields': ('jerarquia', 'gerencia', 'area', 'fecha_contratacion', 'dias_vacaciones_disponibles', 'manager')
+            # Mostrar los campos jerárquicos explícitos en lugar del antiguo campo manager
+            'fields': ('jerarquia', 'gerencia', 'area', 'fecha_contratacion', 'dias_vacaciones_disponibles', 'jefe', 'gerente', 'director')
         }),
         ('Información del Sistema', {
             'fields': ('puede_gestionar_equipo', 'es_rrhh', 'puede_solicitar_nuevo_empleado'),
@@ -28,6 +31,12 @@ class EmpleadoAdmin(admin.ModelAdmin):
         """
         obj.clean()  # Ejecutar validaciones personalizadas
         super().save_model(request, obj, form, change)
+
+    def get_manager(self, obj):
+        """Muestra el manager calculado (compatibilidad)."""
+        mgr = obj.manager
+        return f"{mgr.nombre} {mgr.apellido}" if mgr else ''
+    get_manager.short_description = 'Manager'
 
 @admin.register(SolicitudVacaciones)
 class SolicitudVacacionesAdmin(admin.ModelAdmin):

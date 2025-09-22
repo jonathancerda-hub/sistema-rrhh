@@ -35,7 +35,7 @@ class Command(BaseCommand):
         solicitudes_pendientes = SolicitudVacaciones.objects.filter(
             estado='pendiente',
             fecha_solicitud__lte=fecha_limite
-        ).select_related('empleado', 'empleado__manager')
+        ).select_related('empleado')
         
         if not solicitudes_pendientes.exists():
             self.stdout.write(

@@ -8,12 +8,37 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
 from django.db import models, transaction
+from django.db.utils import ProgrammingError
 from datetime import datetime, date, timedelta
 import secrets
 import string
 import pytz
 from .models import Empleado, SolicitudVacaciones, SolicitudNuevoColaborador
 from .forms import SolicitudVacacionesForm, SolicitudNuevoColaboradorForm
+
+
+def empleados_de_un_manager(manager):
+    """QuerySet con los empleados cuyo manager/director/gerente/jefe es `manager`."""
+    # Usar solo los campos jerárquicos explícitos (manager DB column fue eliminada)
+    return Empleado.objects.filter(
+        models.Q(jefe=manager) | models.Q(gerente=manager) | models.Q(director=manager)
+    )
+
+
+def empleado_en_equipo(manager, empleado_obj):
+    """Devuelve True si `empleado_obj` está bajo la responsabilidad de `manager` según campos jerárquicos o manager directo."""
+    if empleado_obj is None or manager is None:
+        return False
+    try:
+        return (
+            (getattr(empleado_obj, 'manager_id', None) == manager.id) or
+            (getattr(empleado_obj, 'jefe_id', None) == manager.id) or
+            (getattr(empleado_obj, 'gerente_id', None) == manager.id) or
+            (getattr(empleado_obj, 'director_id', None) == manager.id)
+        )
+    except AttributeError:
+        # Si los atributos no existen (migración no aplicada), solo comparar por manager
+        return getattr(empleado_obj, 'manager_id', None) == manager.id
 
 def generar_password_temporal():
     """
@@ -170,7 +195,7 @@ def inicio_empleado(request):
         solicitudes_pendientes = None
         if puede_gestionar_equipo:
             solicitudes_pendientes = SolicitudVacaciones.objects.filter(
-                empleado__manager=empleado,
+                (models.Q(empleado__jefe=empleado) | models.Q(empleado__gerente=empleado) | models.Q(empleado__director=empleado)),
                 estado='pendiente'
             ).count()
         
@@ -639,22 +664,23 @@ def manager_dashboard(request):
             messages.error(request, 'No tienes permisos para gestionar equipos.')
             return redirect('inicio_empleado')
         
-        # Obtener solicitudes pendientes del equipo
+        # Obtener solicitudes pendientes del equipo (usando campos jerárquicos)
         solicitudes_pendientes = SolicitudVacaciones.objects.filter(
-            empleado__manager=empleado,
+            (models.Q(empleado__jefe=empleado) | models.Q(empleado__gerente=empleado) | models.Q(empleado__director=empleado)),
             estado='pendiente'
         ).order_by('fecha_solicitud')
         
-        # Obtener solicitudes recientes del equipo
+        # Obtener solicitudes recientes del equipo (jerárquico)
         solicitudes_recientes = SolicitudVacaciones.objects.filter(
-            empleado__manager=empleado
+            (models.Q(empleado__jefe=empleado) | models.Q(empleado__gerente=empleado) | models.Q(empleado__director=empleado))
         ).exclude(estado='pendiente').order_by('-fecha_resolucion')[:10]
         
         # Estadísticas del equipo
-        total_empleados = empleado.equipo.count()
+        # Contar empleados considerando jerarquía explícita
+        total_empleados = empleados_de_un_manager(empleado).count()
         solicitudes_pendientes_count = solicitudes_pendientes.count()
         solicitudes_aprobadas_count = SolicitudVacaciones.objects.filter(
-            empleado__manager=empleado,
+            (models.Q(empleado__jefe=empleado) | models.Q(empleado__gerente=empleado) | models.Q(empleado__director=empleado)),
             estado='aprobado'
         ).count()
         
@@ -689,8 +715,8 @@ def procesar_solicitud_manager(request, solicitud_id):
         
         solicitud = get_object_or_404(SolicitudVacaciones, id=solicitud_id)
         
-        # Verificar que la solicitud sea de su equipo
-        if solicitud.empleado.manager != empleado:
+        # Verificar que la solicitud sea de su equipo (usar jerarquías además de manager)
+        if not empleado_en_equipo(empleado, solicitud.empleado):
             messages.error(request, 'No puedes procesar solicitudes de empleados que no están en tu equipo.')
             return redirect('manager_dashboard')
         
@@ -748,23 +774,23 @@ def equipo_manager(request):
             messages.error(request, 'No tienes permisos para gestionar equipos.')
             return redirect('inicio_empleado')
 
-        # Obtener miembros del equipo
-        equipo = empleado.equipo.all().order_by('nombre')
-        
+        # Obtener miembros del equipo considerando jerarquía explícita
+        equipo = empleados_de_un_manager(empleado).order_by('nombre')
+
         # Estadísticas del equipo
         total_empleados = equipo.count()
-        
+
         # Contar solicitudes por estado
         solicitudes_pendientes = 0
         solicitudes_aprobadas = 0
         solicitudes_rechazadas = 0
-        
+
         for miembro in equipo:
             solicitudes = SolicitudVacaciones.objects.filter(empleado=miembro)
             solicitudes_pendientes += solicitudes.filter(estado='pendiente').count()
             solicitudes_aprobadas += solicitudes.filter(estado='aprobado').count()
             solicitudes_rechazadas += solicitudes.filter(estado='rechazado').count()
-        
+
         contexto = {
             'empleado': empleado,
             'equipo': equipo,
