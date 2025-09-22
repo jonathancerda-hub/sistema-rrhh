@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Asignar/Editar equipo (RRHH)</h2>
+  <p>Selecciona el empleado que deseas reasignar y luego elige su nuevo manager.</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Empleado a reasignar</label>
+      {{ form.empleado_id }}
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Nuevo Manager (opcional)</label>
+      <select name="nuevo_manager_id" class="form-select">
+        <option value="">-- Sin manager --</option>
+        {% for m in candidatos_manager %}
+          <option value="{{ m.id }}">{{ m.nombre }} {{ m.apellido }} — {{ m.puesto }} ({{ m.gerencia }})</option>
+        {% endfor %}
+      </select>
+      <div class="form-text">Si dejas en blanco, el empleado quedará sin manager.</div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar reasignación</button>
+    <a href="{% url 'rrhh_lista_empleados' %}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

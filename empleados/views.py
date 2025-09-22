@@ -801,14 +801,23 @@ def asignar_trabajador_a_equipo(request):
 
     from .forms import AsignarManagerForm
 
-    # Posibles empleados para asignar: mismos gerencia, no ser jefe/manager y no ser el mismo jefe
-    posibles = Empleado.objects.filter(
-        gerencia=jefe.gerencia,
-    ).exclude(id=jefe.id)
+    # Posibles empleados para asignar:
+    # - Incluir empleados de la misma gerencia del jefe
+    # - Incluir también empleados sin gerencia asignada (por si vienen sin gerencia)
+    # - Excluir al propio jefe
+    posibles = Empleado.objects.exclude(id=jefe.id).filter(
+        models.Q(gerencia=jefe.gerencia) | models.Q(gerencia__isnull=True) | models.Q(gerencia='')
+    )
 
-    # Filtrar para solo permitir jerarquías "normales" (no director/gerente/jefe)
+    # Si el jefe es un gerente o un jefe, permitimos asignar trabajadores con jerarquías normales.
+    # Si además el jefe ya es manager real (tiene equipo), puede reasignar managers si es necesario.
     jerarquias_normales = ['supervisor', 'coordinador', 'asistente', 'auxiliar']
-    posibles = posibles.filter(jerarquia__in=jerarquias_normales)
+    if not jefe.es_manager:
+        # Por defecto no incluimos otros managers; limitamos a jerarquías normales
+        posibles = posibles.filter(jerarquia__in=jerarquias_normales)
+    else:
+        # Si ya es manager real, permitir seleccionar empleados de cualquier jerarquía menor o igual
+        posibles = posibles.exclude(jerarquia='director')
 
     if request.method == 'POST':
         form = AsignarManagerForm(request.POST, posible_queryset=posibles)
@@ -829,6 +838,13 @@ def asignar_trabajador_a_equipo(request):
             if ciclo or empleado_obj.id == jefe.id:
                 messages.error(request, 'No se puede asignar por riesgo de ciclo o asignarte a ti mismo.')
                 return redirect('equipo_manager')
+
+            # Antes de reasignar: impedir reasignaciones entre gerencias si el que asigna no es RRHH
+            if not jefe.es_rrhh:
+                # Si el empleado tiene gerencia y es distinta a la del jefe, bloquear
+                if empleado_obj.gerencia and empleado_obj.gerencia != jefe.gerencia:
+                    messages.error(request, 'No puedes reasignar empleados que pertenecen a otra gerencia.')
+                    return redirect('equipo_manager')
 
             # Reasignar manager
             empleado_obj.manager = jefe
@@ -924,6 +940,93 @@ def rrhh_dashboard(request):
         return redirect('login')
     
     return render(request, 'empleados/rrhh_dashboard.html', contexto)
+
+
+@login_required
+def rrhh_asignar_equipo(request):
+    """
+    Permite a RRHH reasignar el manager de cualquier empleado.
+    Usa el mismo formulario `AsignarManagerForm` pero con un queryset global filtrado.
+    """
+    try:
+        empleado_rrhh = Empleado.objects.get(email=request.user.email)
+    except Empleado.DoesNotExist:
+        messages.error(request, 'No tienes un perfil de empleado asociado.')
+        return redirect('login')
+
+    if not empleado_rrhh.es_empleado_rrhh:
+        messages.error(request, 'No tienes permisos de RRHH para acceder a esta página.')
+        return redirect('inicio_empleado')
+
+    from .forms import AsignarManagerForm
+
+    # Posibles empleados: todos menos el RRHH mismo
+    posibles = Empleado.objects.exclude(id=empleado_rrhh.id)
+
+    # Por seguridad, excluir directores de ser reasignados por RRHH desde aquí (si se desea puede incluirse)
+    # dejamos la opción abierta: permitimos editar cualquier empleado normal y managers si es necesario.
+
+    if request.method == 'POST':
+        form = AsignarManagerForm(request.POST, posible_queryset=posibles)
+        if form.is_valid():
+            empleado_obj = form.cleaned_data['empleado_id']
+
+            # Para RRHH necesitamos un selector del nuevo manager; asumimos que el formulario
+            # enviará el empleado a reasignar y en la misma vista se selecciona el nuevo manager
+            # Como el formulario actual solo entrega el empleado a asignar, buscaremos un campo
+            # 'nuevo_manager_id' en POST que contendrá el id del manager seleccionado.
+            nuevo_manager_id = request.POST.get('nuevo_manager_id')
+            nuevo_manager = None
+            if nuevo_manager_id:
+                try:
+                    nuevo_manager = Empleado.objects.get(id=int(nuevo_manager_id))
+                except (Empleado.DoesNotExist, ValueError):
+                    nuevo_manager = None
+
+            # Validaciones básicas: no asignar el empleado a sí mismo y evitar ciclos
+            if nuevo_manager and nuevo_manager.id == empleado_obj.id:
+                messages.error(request, 'No se puede asignar como manager al mismo empleado.')
+                return redirect('rrhh_asignar_equipo')
+
+            # Evitar ciclos: recorrer dirección hacia arriba desde el nuevo manager
+            cur = nuevo_manager
+            visitados = set()
+            ciclo = False
+            while cur:
+                if cur.id in visitados:
+                    ciclo = True
+                    break
+                visitados.add(cur.id)
+                cur = cur.manager
+
+            if ciclo:
+                messages.error(request, 'Asignación inválida: se detecta riesgo de ciclo en la jerarquía.')
+                return redirect('rrhh_asignar_equipo')
+
+            # Realizar la reasignación
+            empleado_obj.manager = nuevo_manager
+            empleado_obj.save()
+            messages.success(request, f'{empleado_obj.nombre} {empleado_obj.apellido} reasignado correctamente.')
+            return redirect('rrhh_lista_empleados')
+        else:
+            messages.error(request, 'Formulario inválido. Por favor selecciona un empleado válido.')
+            return redirect('rrhh_asignar_equipo')
+    else:
+        form = AsignarManagerForm(posible_queryset=posibles)
+
+    # Para facilitar UX: preparar lista de posibles managers (candidatos)
+    # Permitimos como posibles managers a empleados con jerarquía por encima de 'supervisor'
+    candidatos_manager = Empleado.objects.exclude(id=empleado_rrhh.id)
+
+    contexto = {
+        'empleado': empleado_rrhh,
+        'form': form,
+        'posibles': posibles,
+        'candidatos_manager': candidatos_manager,
+        'user': request.user,
+    }
+
+    return render(request, 'empleados/rrhh_asignar_equipo.html', contexto)
 
 
 @login_required

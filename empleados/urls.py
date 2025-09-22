@@ -44,6 +44,8 @@ urlpatterns = [
     path('rrhh/empleados/', views.rrhh_lista_empleados, name='rrhh_lista_empleados'),
     path('rrhh/empleados/<int:empleado_id>/editar/', views.rrhh_editar_empleado, name='rrhh_editar_empleado'),
     path('rrhh/empleados/<int:empleado_id>/offboarding/', views.rrhh_offboarding_empleado, name='rrhh_offboarding_empleado'),
+    # RRHH: asignar equipo (editar manager de un empleado)
+    path('rrhh/empleados/asignar/', views.rrhh_asignar_equipo, name='rrhh_asignar_equipo'),
     # Configuración de notificaciones
     path('rrhh/configurar-notificaciones/', views_notificaciones.configurar_notificaciones, name='configurar_notificaciones'),
 ]
